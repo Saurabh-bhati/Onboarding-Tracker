@@ -1,1695 +1,460 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>PW - Offroll Attendance Portal</title>
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f3f5f7;color:#182230}
+.header{background:#151b23;color:#fff;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;gap:15px}
+.title{display:flex;align-items:center;gap:12px}
+.logo{width:38px;height:38px;border-radius:10px;background:#f57c00;display:grid;place-items:center;font-weight:900;color:#fff;font-size:18px}
+h1{font-size:18px;margin:0 0 2px}
+.sub{font-size:12px;color:#aeb9c6}
+.wrap{max-width:1200px;margin:auto;padding:15px}
+
+.sync-status{background:#eef5ff;color:#175ea8;border:1px solid #d9e8fb;border-radius:10px;padding:12px 16px;font-size:13px;font-weight:700;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+
+.offroll-login-card{max-width:420px;margin:20px auto;background:#fff;border:1px solid #e1e6eb;border-radius:14px;padding:24px;box-shadow:0 4px 16px #0000000d}
+.offroll-login-card h2{margin:0 0 8px;font-size:20px}
+.login-note{font-size:13px;color:#6d7a88;margin:0 0 20px}
+.offroll-login-form{display:grid;gap:16px}
+.offroll-login-form label{display:flex;flex-direction:column;gap:6px;font-size:11px;color:#657281;font-weight:700;text-transform:uppercase}
+.offroll-login-form input{width:100%;padding:12px;border:1px solid #ccd5df;border-radius:8px;font-size:14px;outline:0}
+.offroll-login-form button{width:100%;margin-top:8px;background:#151b23;color:#fff;border:0;padding:12px;border-radius:8px;font-weight:700;font-size:15px;cursor:pointer}
+.offroll-login-form button:hover{background:#2b3440}
+
+.offroll-view-private{display:none}
+.offroll-view-private.show{display:block}
+.offroll-view-head{background:#fff;border:1px solid #e1e6eb;border-radius:12px;padding:16px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
+.offroll-view-head h3{margin:0 0 4px;font-size:18px}
+.offroll-view-head p{margin:0;font-size:12px;color:#6d7a88}
+.month-selector{display:flex;align-items:center;gap:10px}
+.month-selector label{font-size:12px;font-weight:700;color:#657281;text-transform:uppercase}
+.month-selector select{padding:8px 12px;border-radius:8px;border:1px solid #ccd5df;font-size:13px;font-weight:700;background:#f7f9fb;outline:0;cursor:pointer}
+.logout-btn{border:1px solid #f5c6cb;background:#fff;padding:8px 14px;border-radius:8px;font-weight:700;cursor:pointer;color:#d32f2f;font-size:13px}
+
+.offroll-view-kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:16px}
+.offroll-view-kpi{background:#fff;border:1px solid #e3e8ee;border-radius:12px;padding:12px 14px}
+.offroll-view-kpi small{color:#6b7785;text-transform:uppercase;font-weight:700;font-size:10px}
+.offroll-view-kpi strong{display:block;font-size:20px;margin-top:4px}
+
+.offroll-view-employee{background:#fff;border:1px solid #e1e6eb;border-radius:12px;padding:16px;margin-bottom:16px}
+.offroll-view-employee h4{margin:0 0 12px;font-size:13px;text-transform:uppercase;color:#657281;letter-spacing:0.5px}
+.offroll-view-employee-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.offroll-view-employee-item{background:#f7f9fb;border-radius:8px;padding:10px;border:1px solid #edf0f3}
+.offroll-view-employee-item small{display:block;color:#6b7785;font-size:10px;font-weight:700;text-transform:uppercase;margin-bottom:4px}
+.offroll-view-employee-item b{font-size:13px;word-break:break-word}
+
+.table-card{background:#fff;border:1px solid #e1e6eb;border-radius:12px;padding:16px}
+.table-wrap{overflow:auto;max-height:500px;border:1px solid #edf0f3;border-radius:8px}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{padding:10px 14px;border-bottom:1px solid #edf0f3;text-align:left;white-space:nowrap}
+th{position:sticky;top:0;background:#f7f9fb;z-index:1;font-size:11px;text-transform:uppercase;color:#657281}
+
+.status-P{color:#18753b;font-weight:700}
+.status-N{color:#1565c0;font-weight:700}
+.status-L{color:#e2a400;font-weight:700}
+.status-HD{color:#e65100;font-weight:700}
+.status-WO{color:#6a1b9a;font-weight:700}
+.status-A{color:#d32f2f;font-weight:700}
+
+@media (max-width: 900px) {
+  .offroll-view-kpis{grid-template-columns:repeat(3,1fr)}
+  .offroll-view-employee-grid{grid-template-columns:repeat(2,1fr)}
+}
+
+@media (max-width: 600px) {
+  .wrap{padding:10px}
+  .header{padding:14px;flex-direction:column;align-items:flex-start}
+  .sync-status{font-size:12px}
+  .offroll-view-kpis{grid-template-columns:repeat(2,1fr);gap:8px}
+  .offroll-view-employee-grid{grid-template-columns:1fr;gap:8px}
+  .offroll-login-card{margin:20px 10px;padding:20px}
+  .offroll-view-head{flex-direction:column;align-items:flex-start}
+  th,td{padding:8px 10px}
+}
+</style>
+</head>
+<body>
+
+<header class="header">
+ <div class="title">
+    <div class="logo">P</div>
+    <div>
+      <h1>PW - Offroll Attendance Portal</h1>
+      <div class="sub">Emp ID & Password Login</div>
+    </div>
+ </div>
+</header>
+
+<main class="wrap">
+
+  <div class="sync-status">
+    <span id="syncText">🔗 Google Sheets se connect ho raha hai...</span>
+    <button onclick="fetchSheetData()" style="background:#fff;border:1px solid #ccd5df;padding:5px 10px;border-radius:6px;cursor:pointer;font-weight:700;font-size:12px">🔄 Refresh Data</button>
+  </div>
+
+  <div id="offrollViewLogin" class="offroll-login-card">
+    <h2>Employee Login</h2>
+    <p class="login-note">Apna <b>Emp ID</b> (User ID) aur <b>Employee Name</b> (Password) enter karein.</p>
+    
+    <form class="offroll-login-form" onsubmit="event.preventDefault(); verifyUserAndLogin();">
+      <label>User ID (Emp ID)
+        <input id="loginEmpId" type="text" placeholder="e.g. D0318010190" required>
+      </label>
+
+      <label>Password (Employee Name)
+        <input id="loginEmpName" type="password" placeholder="e.g. Rahul Kumar" required>
+      </label>
+
+      <button type="submit">Login to Dashboard</button>
+    </form>
+  </div>
+
+  <div id="offrollViewPrivate" class="offroll-view-private">
+    <div class="offroll-view-head">
+      <div>
+        <h3>My Attendance Dashboard</h3>
+        <p>Verified Credentials</p>
+      </div>
+      
+      <div class="month-selector">
+        <label>Cycle Month:</label>
+        <select id="monthCycleSelect" onchange="renderSelectedMonthAttendance()"></select>
+        <button class="logout-btn" onclick="offrollViewLogout()">Logout</button>
+      </div>
+    </div>
+
+    <div class="offroll-view-kpis">
+      <div class="offroll-view-kpi"><small>Total Days</small><strong id="kpiTotal">0</strong></div>
+      <div class="offroll-view-kpi"><small>Present (P)</small><strong id="kpiPresent" style="color:#18753b">0</strong></div>
+      <div class="offroll-view-kpi"><small>Night Pres. (N)</small><strong id="kpiNight" style="color:#1565c0">0</strong></div>
+      <div class="offroll-view-kpi"><small>Leave (L)</small><strong id="kpiLeave" style="color:#e2a400">0</strong></div>
+      <div class="offroll-view-kpi"><small>Half Day (HD)</small><strong id="kpiHalfDay" style="color:#e65100">0</strong></div>
+      <div class="offroll-view-kpi"><small>Absent (A)</small><strong id="kpiAbsent" style="color:#d32f2f">0</strong></div>
+    </div>
+
+    <section class="offroll-view-employee">
+      <h4>Employee Information</h4>
+      <div class="offroll-view-employee-grid">
+        <div class="offroll-view-employee-item"><small>Emp ID</small><b id="dispEmpId">-</b></div>
+        <div class="offroll-view-employee-item"><small>Name</small><b id="dispEmpName">-</b></div>
+        <div class="offroll-view-employee-item"><small>Father Name</small><b id="dispFatherName">-</b></div>
+        <div class="offroll-view-employee-item"><small>Dept</small><b id="dispDept">-</b></div>
+        <div class="offroll-view-employee-item"><small>Designation</small><b id="dispDesig">-</b></div>
+        <div class="offroll-view-employee-item"><small>DOJ</small><b id="dispDoj">-</b></div>
+        <div class="offroll-view-employee-item"><small>Status</small><b id="dispStatus">-</b></div>
+        <div class="offroll-view-employee-item"><small>Vendor</small><b id="dispVendor">-</b></div>
+      </div>
+    </section>
+
+    <section class="table-card">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="attendanceTbody"></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+</main>
+
 <script>
-// ============================================================
-// GOOGLE SHEET SOURCES
-// ============================================================
-
-// EXISTING HRMS ATTENDANCE SHEET
-const GOOGLE_SHEET_CSV_URL =
-"https://docs.google.com/spreadsheets/d/e/2PACX-1vRFoCW6qj1J85c8Z1sOSJqvexKtECuM1UMEANVIFQ1yVJRvGixR5VNh4VT66O23pi7p8y2sLc543337/pub?gid=1333099798&single=true&output=csv";
-
-
-// NEW DS PRINTING PRESS ATTENDANCE SHEET
-const PRINTING_PRESS_CSV_URL =
-"https://docs.google.com/spreadsheets/d/e/2PACX-1vQYBjt11wkD13f_LHrdq_hzTV53_pObPlxxvQKTaOmxthhkk_ARzRec3asnmc1A_Bfh7-Ok74Cb2Mfh/pub?gid=1787118786&single=true&output=csv";
-
-
-// ============================================================
-// BOTH SHEETS
-// ============================================================
-
-const SHEET_SOURCES = [
-  {
-    name: "Main Attendance",
-    url: GOOGLE_SHEET_CSV_URL
-  },
-  {
-    name: "DS Printing Press",
-    url: PRINTING_PRESS_CSV_URL
-  }
+const GOOGLE_SHEET_URLS = [
+  "https://docs.google.com/spreadsheets/d/e/2PACX-1vRFoCW6qj1J85c8Z1sOSJqvexKtECuM1UMEANVIFQ1yVJRvGixR5VNh4VT66O23pi7p8y2sLc543337/pub?gid=1333099798&single=true&output=csv",
+  "https://docs.google.com/spreadsheets/d/e/2PACX-1vQYBjt11wkD13f_LHrdq_hzTV53_pObPlxxvQKTaOmxthhkk_ARzRec3asnmc1A_Bfh7-Ok74Cb2Mfh/pub?gid=1787118786&single=true&output=csv"
 ];
 
-
-// ============================================================
-// GLOBAL VARIABLES
-// ============================================================
-
-let parsedData = [];
-let sourceDatasets = [];
-
+let allSheetsData = [];
 let currentMatchedRow = null;
 let currentHeaderRow = null;
-
 let dateColumnsInfo = [];
 
-const monthNames = [
-  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
-];
+const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
+function fetchSheetData() {
+  const syncText = document.getElementById("syncText");
+  syncText.textContent = "🔄 Google Sheets se latest data sync ho raha hai...";
+  
+  allSheetsData = [];
+  let completedFetches = 0;
 
-// ============================================================
-// STRING CLEANER
-// ============================================================
+  GOOGLE_SHEET_URLS.forEach((sheetUrl) => {
+    Papa.parse(sheetUrl + "&t=" + new Date().getTime(), {
+      download: true,
+      complete: function(results) {
+        if (results.data && results.data.length > 0) {
+          allSheetsData.push(results.data);
+        }
+        completedFetches++;
+        if (completedFetches === GOOGLE_SHEET_URLS.length) {
+          syncText.innerHTML = "🟢 <b>Live Connected:</b> Multiple Google Sheets Synced!";
+        }
+      },
+      error: function() {
+        completedFetches++;
+      }
+    });
+  });
+}
+
+window.onload = fetchSheetData;
 
 function cleanString(str) {
-
-  return String(str || "")
-    .trim()
-    .toLowerCase()
-    .replace(/\s+/g, " ");
-
+  return String(str || "").trim().toLowerCase().replace(/\s+/g, ' ');
 }
-
-
-// ============================================================
-// GET CELL VALUE
-// ============================================================
-
-function getCell(row, index) {
-
-  if (
-    index >= 0 &&
-    row &&
-    row[index] !== undefined &&
-    row[index] !== null
-  ) {
-
-    return String(row[index]).trim();
-
-  }
-
-  return "";
-
-}
-
-
-// ============================================================
-// FIND HEADER ROW
-// ============================================================
-
-function findHeaderRow(data) {
-
-  for (let i = 0; i < data.length; i++) {
-
-    const row = data[i] || [];
-
-    const cells = row.map(cleanString);
-
-    const hasEmpId = cells.some(v =>
-      v === "emp id" ||
-      v === "empid" ||
-      v.includes("employee id")
-    );
-
-    const hasName = cells.some(v =>
-      v === "name" ||
-      v === "employee name"
-    );
-
-    if (hasEmpId && hasName) {
-
-      return i;
-
-    }
-
-  }
-
-  return -1;
-
-}
-
-
-// ============================================================
-// FIND COLUMN
-// ============================================================
-
-function findColumn(header, names) {
-
-  const wanted = names.map(cleanString);
-
-  for (let i = 0; i < header.length; i++) {
-
-    const h = cleanString(header[i]);
-
-    if (wanted.includes(h)) {
-
-      return i;
-
-    }
-
-  }
-
-  return -1;
-
-}
-
-
-// ============================================================
-// DATE PARSER
-// ============================================================
 
 function parseSheetDate(dateStr) {
-
   if (!dateStr) return null;
+  let str = dateStr.trim();
+  let parts = str.split("-");
+  if (parts.length < 2) return null;
 
-  let str = String(dateStr)
-    .trim()
-    .replace(/[–—]/g, "-")
-    .replace(/\s+/g, " ");
+  let day = parseInt(parts[0], 10);
+  let monthStr = parts[1].toLowerCase();
 
   const monthMap = {
-
-    jan: 0,
-    january: 0,
-
-    feb: 1,
-    february: 1,
-
-    mar: 2,
-    march: 2,
-
-    apr: 3,
-    april: 3,
-
-    may: 4,
-
-    jun: 5,
-    june: 5,
-
-    jul: 6,
-    july: 6,
-
-    aug: 7,
-    august: 7,
-
-    sep: 8,
-    sept: 8,
-    september: 8,
-
-    oct: 9,
-    october: 9,
-
-    nov: 10,
-    november: 10,
-
-    dec: 11,
-    december: 11
-
+    jan: 0, january: 0, feb: 1, february: 1, mar: 2, march: 2,
+    apr: 3, april: 3, may: 4, jun: 5, june: 5, jul: 6, july: 6,
+    aug: 7, august: 7, sep: 8, sept: 8, september: 8, oct: 9, october: 9,
+    nov: 10, november: 10, dec: 11, december: 11
   };
 
+  let month = monthMap[monthStr];
+  if (month === undefined || isNaN(day)) return null;
 
-  // ----------------------------------------------------------
-  // FORMAT: 1-Sep / 04-Sept / 1-September
-  // ----------------------------------------------------------
-
-  let m = str.match(
-    /^(\d{1,2})\s*[-\/]\s*([A-Za-z]{3,9})(?:\s*[-\/]\s*(20\d{2}))?$/
-  );
-
-  if (m) {
-
-    const day = parseInt(m[1], 10);
-
-    const month = monthMap[m[2].toLowerCase()];
-
-    const year = m[3]
-      ? parseInt(m[3], 10)
-      : new Date().getFullYear();
-
-    if (
-      month !== undefined &&
-      day >= 1 &&
-      day <= 31
-    ) {
-
-      return new Date(
-        year,
-        month,
-        day,
-        12,
-        0,
-        0
-      );
-
-    }
-
-  }
-
-
-  // ----------------------------------------------------------
-  // FORMAT: Sep-1 / Sep 1
-  // ----------------------------------------------------------
-
-  m = str.match(
-    /^([A-Za-z]{3,9})\s*[-\/]?\s*(\d{1,2})(?:\s*[-\/]\s*(20\d{2}))?$/
-  );
-
-  if (m) {
-
-    const month = monthMap[m[1].toLowerCase()];
-
-    const day = parseInt(m[2], 10);
-
-    const year = m[3]
-      ? parseInt(m[3], 10)
-      : new Date().getFullYear();
-
-    if (
-      month !== undefined &&
-      day >= 1 &&
-      day <= 31
-    ) {
-
-      return new Date(
-        year,
-        month,
-        day,
-        12,
-        0,
-        0
-      );
-
-    }
-
-  }
-
-
-  // ----------------------------------------------------------
-  // NORMAL DATE FORMAT
-  // ----------------------------------------------------------
-
-  const nativeDate = new Date(str);
-
-  if (!isNaN(nativeDate.getTime())) {
-
-    return new Date(
-      nativeDate.getFullYear(),
-      nativeDate.getMonth(),
-      nativeDate.getDate(),
-      12,
-      0,
-      0
-    );
-
-  }
-
-  return null;
-
+  let year = new Date().getFullYear();
+  return new Date(year, month, day, 12, 0, 0);
 }
-
-
-// ============================================================
-// FORMAT DATE
-// ============================================================
 
 function formatCleanDateStr(dateObj) {
-
   if (!dateObj) return "";
-
-  return (
-    dateObj.getDate() +
-    "-" +
-    monthNames[dateObj.getMonth()]
-  );
-
+  let day = dateObj.getDate();
+  let monthShort = monthNames[dateObj.getMonth()];
+  return `${day}-${monthShort}`;
 }
-
-
-// ============================================================
-// ANALYSE EACH GOOGLE SHEET
-// ============================================================
-
-function analyseSheet(data) {
-
-  const headerIndex = findHeaderRow(data);
-
-  if (headerIndex < 0) {
-
-    return null;
-
-  }
-
-  const header = data[headerIndex] || [];
-
-
-  const empIdIndex = findColumn(
-    header,
-    [
-      "Emp ID",
-      "EmpID",
-      "Employee ID"
-    ]
-  );
-
-
-  const nameIndex = findColumn(
-    header,
-    [
-      "Name",
-      "Employee Name"
-    ]
-  );
-
-
-  const fatherIndex = findColumn(
-    header,
-    [
-      "Father Name",
-      "FatherName"
-    ]
-  );
-
-
-  const deptIndex = findColumn(
-    header,
-    [
-      "Dept",
-      "Department"
-    ]
-  );
-
-
-  const desigIndex = findColumn(
-    header,
-    [
-      "Designation",
-      "Desig"
-    ]
-  );
-
-
-  const dojIndex = findColumn(
-    header,
-    [
-      "DOJ",
-      "Date of Joining",
-      "Joining Date"
-    ]
-  );
-
-
-  const statusIndex = findColumn(
-    header,
-    [
-      "Status"
-    ]
-  );
-
-
-  const vendorIndex = findColumn(
-    header,
-    [
-      "Vendor",
-      "Vendor Name"
-    ]
-  );
-
-
-  // Attendance starts after Status
-  // New Printing Press Sheet:
-  // C = Emp ID
-  // D = Name
-  // E = Father Name
-  // F = Designation
-  // G = DOJ
-  // H = Status
-  // I onwards = Attendance
-
-  const attendanceStart =
-    statusIndex >= 0
-      ? statusIndex + 1
-      : Math.max(
-          empIdIndex,
-          nameIndex
-        ) + 1;
-
-
-  const dateColumns = [];
-
-
-  for (
-    let col = attendanceStart;
-    col < header.length;
-    col++
-  ) {
-
-    const dateStr =
-      String(header[col] || "").trim();
-
-    if (!dateStr) continue;
-
-
-    const lower =
-      dateStr.toLowerCase();
-
-
-    if (
-      lower.includes("present") ||
-      lower.includes("total") ||
-      lower.includes("night")
-    ) {
-
-      continue;
-
-    }
-
-
-    const parsedDate =
-      parseSheetDate(dateStr);
-
-
-    if (parsedDate) {
-
-      dateColumns.push({
-
-        colIndex: col,
-
-        dateObj: parsedDate,
-
-        cleanDateStr:
-          formatCleanDateStr(parsedDate)
-
-      });
-
-    }
-
-  }
-
-
-  return {
-
-    headerIndex,
-
-    header,
-
-    empIdIndex,
-
-    nameIndex,
-
-    fatherIndex,
-
-    deptIndex,
-
-    desigIndex,
-
-    dojIndex,
-
-    statusIndex,
-
-    vendorIndex,
-
-    dateColumns
-
-  };
-
-}
-
-
-// ============================================================
-// BUILD EMPLOYEE RECORD
-// ============================================================
-
-function buildEmployeeRecord(
-  row,
-  meta,
-  sourceName
-) {
-
-  return {
-
-    row: row,
-
-    meta: meta,
-
-    sourceName: sourceName,
-
-    empId:
-      getCell(
-        row,
-        meta.empIdIndex
-      ),
-
-    name:
-      getCell(
-        row,
-        meta.nameIndex
-      ),
-
-    fatherName:
-      getCell(
-        row,
-        meta.fatherIndex
-      ),
-
-    dept:
-      getCell(
-        row,
-        meta.deptIndex
-      ),
-
-    desig:
-      getCell(
-        row,
-        meta.desigIndex
-      ),
-
-    doj:
-      getCell(
-        row,
-        meta.dojIndex
-      ),
-
-    status:
-      getCell(
-        row,
-        meta.statusIndex
-      ),
-
-    vendor:
-      getCell(
-        row,
-        meta.vendorIndex
-      )
-
-  };
-
-}
-
-
-// ============================================================
-// FETCH ONE CSV
-// ============================================================
-
-function fetchCsv(url) {
-
-  return new Promise(
-    (resolve, reject) => {
-
-      const cacheBuster =
-        (url.includes("?") ? "&" : "?") +
-        "t=" +
-        new Date().getTime();
-
-
-      Papa.parse(
-        url + cacheBuster,
-        {
-
-          download: true,
-
-          skipEmptyLines: false,
-
-          complete: function(results) {
-
-            resolve(
-              results.data || []
-            );
-
-          },
-
-          error: function(error) {
-
-            reject(error);
-
-          }
-
-        }
-
-      );
-
-    }
-  );
-
-}
-
-
-// ============================================================
-// FETCH BOTH GOOGLE SHEETS
-// ============================================================
-
-async function fetchSheetData() {
-
-  const syncText =
-    document.getElementById(
-      "syncText"
-    );
-
-
-  syncText.textContent =
-    "🔄 Fetching latest data from Google Sheets...";
-
-
-  try {
-
-    const results =
-      await Promise.all(
-
-        SHEET_SOURCES.map(
-          source =>
-            fetchCsv(source.url)
-        )
-
-      );
-
-
-    sourceDatasets =
-      results.map(
-        (data, index) => ({
-
-          name:
-            SHEET_SOURCES[index].name,
-
-          data: data,
-
-          meta:
-            analyseSheet(data)
-
-        })
-      );
-
-
-    // Existing system compatibility
-    parsedData =
-      sourceDatasets[0]
-        ? sourceDatasets[0].data
-        : [];
-
-
-    const loadedSheets =
-      sourceDatasets
-        .filter(
-          sheet =>
-            sheet.data &&
-            sheet.data.length > 0
-        )
-        .map(
-          sheet =>
-            sheet.name
-        );
-
-
-    if (loadedSheets.length > 0) {
-
-      syncText.innerHTML =
-        "🟢 <b>Live Connected:</b> " +
-        loadedSheets.join(" + ") +
-        " synced!";
-
-    } else {
-
-      syncText.textContent =
-        "❌ Google Sheet data nahi mila.";
-
-    }
-
-
-  } catch (error) {
-
-    console.error(
-      "Google Sheet Error:",
-      error
-    );
-
-
-    syncText.textContent =
-      "❌ Sheet load nahi ho payi. Refresh Data par click karein.";
-
-  }
-
-}
-
-
-// ============================================================
-// PAGE LOAD
-// ============================================================
-
-window.onload =
-  fetchSheetData;
-
-
-// ============================================================
-// FIND EMPLOYEE IN BOTH SHEETS
-// ============================================================
-
-function findEmployeeRecords(
-  inputEmpId,
-  inputEmpName
-) {
-
-  const matches = [];
-
-
-  sourceDatasets.forEach(
-    dataset => {
-
-      if (!dataset.meta) return;
-
-
-      const meta =
-        dataset.meta;
-
-
-      for (
-        let i =
-          meta.headerIndex + 1;
-
-        i <
-        dataset.data.length;
-
-        i++
-      ) {
-
-        const row =
-          dataset.data[i];
-
-
-        if (
-          !row ||
-          row.length === 0
-        ) {
-
-          continue;
-
-        }
-
-
-        const empId =
-          cleanString(
-            getCell(
-              row,
-              meta.empIdIndex
-            )
-          );
-
-
-        const name =
-          cleanString(
-            getCell(
-              row,
-              meta.nameIndex
-            )
-          );
-
-
-        if (
-          empId === inputEmpId &&
-          name === inputEmpName
-        ) {
-
-          matches.push(
-            buildEmployeeRecord(
-              row,
-              meta,
-              dataset.name
-            )
-          );
-
-        }
-
-      }
-
-    }
-  );
-
-
-  return matches;
-
-}
-
-
-// ============================================================
-// LOGIN
-// ============================================================
 
 function verifyUserAndLogin() {
+  const inputEmpId = cleanString(document.getElementById("loginEmpId").value);
+  const inputEmpName = cleanString(document.getElementById("loginEmpName").value);
 
-  const inputEmpId =
-    cleanString(
-      document.getElementById(
-        "loginEmpId"
-      ).value
-    );
-
-
-  const inputEmpName =
-    cleanString(
-      document.getElementById(
-        "loginEmpName"
-      ).value
-    );
-
-
-  if (
-    !inputEmpId ||
-    !inputEmpName
-  ) {
-
-    alert(
-      "Kripya Emp ID aur Employee Name dono enter karein!"
-    );
-
+  if(!inputEmpId || !inputEmpName) {
+    alert("Kripya Emp ID aur Employee Name dono enter karein!");
     return;
-
   }
 
-
-  if (
-    sourceDatasets.length === 0 ||
-    sourceDatasets.every(
-      x =>
-        !x.data ||
-        x.data.length === 0
-    )
-  ) {
-
-    alert(
-      "Data load ho raha hai. Kripya Refresh Data par click karke try karein."
-    );
-
+  if(allSheetsData.length === 0){
+    alert("Data abhi load ho raha hai, kripya Refresh Data par click karein.");
     return;
-
   }
 
+  currentMatchedRow = null;
+  currentHeaderRow = null;
 
-  // SEARCH IN BOTH SHEETS
-  const matchedRecords =
-    findEmployeeRecords(
-      inputEmpId,
-      inputEmpName
-    );
+  for(let s = 0; s < allSheetsData.length; s++) {
+    let sheetRows = allSheetsData[s];
 
-
-  if (
-    matchedRecords.length === 0
-  ) {
-
-    alert(
-      "Invalid Credentials! User ID (Emp ID) ya Password (Name) sahi nahi hai."
-    );
-
-    return;
-
-  }
-
-
-  // ==========================================================
-  // EMPLOYEE PROFILE
-  // ==========================================================
-
-  const profile = {
-
-    empId: "",
-
-    name: "",
-
-    fatherName: "",
-
-    dept: "",
-
-    desig: "",
-
-    doj: "",
-
-    status: "",
-
-    vendor: ""
-
-  };
-
-
-  // If employee exists in both sheets,
-  // first available value will be used.
-
-  matchedRecords.forEach(
-    record => {
-
-      const fields = [
-        "empId",
-        "name",
-        "fatherName",
-        "dept",
-        "desig",
-        "doj",
-        "status",
-        "vendor"
-      ];
-
-
-      fields.forEach(
-        field => {
-
-          if (
-            !profile[field] &&
-            record[field]
-          ) {
-
-            profile[field] =
-              record[field];
-
-          }
-
-        }
-      );
-
+    // Find Header Row dynamically
+    let hRow = null;
+    for(let r = 0; r < Math.min(5, sheetRows.length); r++) {
+      let row = sheetRows[r];
+      if(!row) continue;
+      if(row.some(c => cleanString(c).includes("emp") || cleanString(c).includes("name"))) {
+        hRow = row;
+        break;
+      }
     }
-  );
 
+    // Search user row across all cells (Fuzzy / Column-agnostic search)
+    for(let i = 0; i < sheetRows.length; i++) {
+      let row = sheetRows[i];
+      if(!row) continue;
 
-  // ==========================================================
-  // SHOW EMPLOYEE INFORMATION
-  // ==========================================================
+      let rowJoined = row.map(cell => cleanString(cell)).join(" | ");
 
-  document.getElementById(
-    "dispEmpId"
-  ).textContent =
-    profile.empId || "-";
+      if(rowJoined.includes(inputEmpId) && rowJoined.includes(inputEmpName)) {
+        currentMatchedRow = row;
+        currentHeaderRow = hRow || sheetRows[0];
+        break;
+      }
+    }
 
+    if(currentMatchedRow) break;
+  }
 
-  document.getElementById(
-    "dispEmpName"
-  ).textContent =
-    profile.name || "-";
+  if(!currentMatchedRow) {
+    alert("Invalid Credentials! User ID (Emp ID) ya Password (Name) nahi mila.");
+    return;
+  }
 
+  // Display Profile Details
+  document.getElementById("dispEmpId").textContent = document.getElementById("loginEmpId").value;
+  document.getElementById("dispEmpName").textContent = document.getElementById("loginEmpName").value;
+  document.getElementById("dispFatherName").textContent = currentMatchedRow[2] || "-";
+  document.getElementById("dispDept").textContent = currentMatchedRow[3] || "-";
+  document.getElementById("dispDesig").textContent = currentMatchedRow[4] || "-";
+  document.getElementById("dispDoj").textContent = currentMatchedRow[5] || "-";
+  document.getElementById("dispStatus").textContent = currentMatchedRow[6] || "-";
+  document.getElementById("dispVendor").textContent = currentMatchedRow[7] || "-";
 
-  document.getElementById(
-    "dispFatherName"
-  ).textContent =
-    profile.fatherName || "-";
-
-
-  document.getElementById(
-    "dispDept"
-  ).textContent =
-    profile.dept || "-";
-
-
-  document.getElementById(
-    "dispDesig"
-  ).textContent =
-    profile.desig || "-";
-
-
-  document.getElementById(
-    "dispDoj"
-  ).textContent =
-    profile.doj || "-";
-
-
-  document.getElementById(
-    "dispStatus"
-  ).textContent =
-    profile.status || "-";
-
-
-  document.getElementById(
-    "dispVendor"
-  ).textContent =
-    profile.vendor || "-";
-
-
-  // ==========================================================
-  // COMBINE ATTENDANCE FROM BOTH SHEETS
-  // ==========================================================
-
+  // Scan date headers
   dateColumnsInfo = [];
+  for(let col = 0; col < currentMatchedRow.length; col++){
+    let dateStr = currentHeaderRow && currentHeaderRow[col] ? currentHeaderRow[col].trim() : "";
+    if(!dateStr) continue;
 
-
-  matchedRecords.forEach(
-    record => {
-
-      record.meta.dateColumns.forEach(
-        item => {
-
-          dateColumnsInfo.push({
-
-            sourceName:
-              record.sourceName,
-
-            row:
-              record.row,
-
-            colIndex:
-              item.colIndex,
-
-            dateObj:
-              item.dateObj,
-
-            cleanDateStr:
-              item.cleanDateStr
-
-          });
-
-        }
-      );
-
+    let lowerDate = dateStr.toLowerCase();
+    if(lowerDate.includes("present") || lowerDate.includes("total") || lowerDate.includes("night") || lowerDate.includes("absent") || lowerDate.includes("leave") || lowerDate.includes("name") || lowerDate.includes("emp")) {
+      continue;
     }
-  );
 
+    let parsedDate = parseSheetDate(dateStr);
+    if(parsedDate) {
+      dateColumnsInfo.push({
+        colIndex: col,
+        dateObj: parsedDate,
+        cleanDateStr: formatCleanDateStr(parsedDate)
+      });
+    }
+  }
 
-  // Sort attendance by date
-  dateColumnsInfo.sort(
-    (a, b) =>
-      a.dateObj - b.dateObj
-  );
-
-
-  // Build month cycle
   buildMonthCycleDropdown();
 
-
-  // Show dashboard
-  document.getElementById(
-    "offrollViewLogin"
-  ).style.display =
-    "none";
-
-
-  document.getElementById(
-    "offrollViewPrivate"
-  ).classList.add(
-    "show"
-  );
-
+  document.getElementById("offrollViewLogin").style.display = "none";
+  document.getElementById("offrollViewPrivate").classList.add("show");
 }
-
-
-// ============================================================
-// MONTH CYCLE DROPDOWN
-// ============================================================
 
 function buildMonthCycleDropdown() {
-
-  const selectEl =
-    document.getElementById(
-      "monthCycleSelect"
-    );
-
-
+  let selectEl = document.getElementById("monthCycleSelect");
   selectEl.innerHTML = "";
 
+  if(dateColumnsInfo.length === 0) return;
 
-  if (
-    dateColumnsInfo.length === 0
-  ) {
+  let cyclesMap = {};
 
-    return;
+  dateColumnsInfo.forEach(item => {
+    let d = item.dateObj;
+    let day = d.getDate();
+    let month = d.getMonth();
+    let year = d.getFullYear();
 
-  }
-
-
-  const cyclesMap = {};
-
-
-  dateColumnsInfo.forEach(
-    item => {
-
-      const d =
-        item.dateObj;
-
-
-      const day =
-        d.getDate();
-
-
-      const month =
-        d.getMonth();
-
-
-      const year =
-        d.getFullYear();
-
-
-      let cycleMonth;
-
-      let cycleYear;
-
-
-      if (day >= 26) {
-
-        cycleMonth =
-          (month + 1) % 12;
-
-
-        cycleYear =
-          month === 11
-            ? year + 1
-            : year;
-
-      } else {
-
-        cycleMonth =
-          month;
-
-
-        cycleYear =
-          year;
-
-      }
-
-
-      const cycleKey =
-        `${cycleYear}-${cycleMonth}`;
-
-
-      if (
-        !cyclesMap[cycleKey]
-      ) {
-
-        const previousMonth =
-          cycleMonth === 0
-            ? 11
-            : cycleMonth - 1;
-
-
-        const label =
-          `26 ${monthNames[previousMonth]} - 25 ${monthNames[cycleMonth]}`;
-
-
-        cyclesMap[cycleKey] = {
-
-          key:
-            cycleKey,
-
-          label:
-            label,
-
-          targetMonth:
-            cycleMonth,
-
-          targetYear:
-            cycleYear
-
-        };
-
-      }
-
+    let cycleMonth, cycleYear;
+    if(day >= 26) {
+      cycleMonth = (month + 1) % 12;
+      cycleYear = month === 11 ? year + 1 : year;
+    } else {
+      cycleMonth = month;
+      cycleYear = year;
     }
-  );
 
-
-  const keys =
-    Object.keys(
-      cyclesMap
-    ).sort(
-      (a, b) => {
-
-        const [
-          ay,
-          am
-        ] =
-          a
-            .split("-")
-            .map(Number);
-
-
-        const [
-          by,
-          bm
-        ] =
-          b
-            .split("-")
-            .map(Number);
-
-
-        return (
-          new Date(
-            ay,
-            am,
-            1
-          ) -
-          new Date(
-            by,
-            bm,
-            1
-          )
-        );
-
-      }
-    );
-
-
-  keys.forEach(
-    key => {
-
-      const option =
-        document.createElement(
-          "option"
-        );
-
-
-      option.value =
-        cyclesMap[key].key;
-
-
-      option.textContent =
-        cyclesMap[key].label;
-
-
-      selectEl.appendChild(
-        option
-      );
-
+    let cycleKey = `${cycleYear}-${cycleMonth}`;
+    if(!cyclesMap[cycleKey]) {
+      let prevMonth = (cycleMonth === 0) ? 11 : cycleMonth - 1;
+      let label = `26 ${monthNames[prevMonth]} - 25 ${monthNames[cycleMonth]}`;
+      cyclesMap[cycleKey] = {
+        key: cycleKey,
+        label: label,
+        targetMonth: cycleMonth,
+        targetYear: cycleYear
+      };
     }
-  );
+  });
 
+  let keys = Object.keys(cyclesMap);
+  keys.forEach(k => {
+    let opt = document.createElement("option");
+    opt.value = cyclesMap[k].key;
+    opt.textContent = cyclesMap[k].label;
+    selectEl.appendChild(opt);
+  });
 
-  if (
-    keys.length > 0
-  ) {
-
-    selectEl.value =
-      keys[keys.length - 1];
-
+  if(keys.length > 0) {
+    selectEl.value = keys[keys.length - 1];
   }
-
 
   renderSelectedMonthAttendance();
-
 }
-
-
-// ============================================================
-// RENDER ATTENDANCE
-// ============================================================
 
 function renderSelectedMonthAttendance() {
+  let selectedKey = document.getElementById("monthCycleSelect").value;
+  if(!selectedKey || !currentMatchedRow) return;
 
-  const selectedKey =
-    document.getElementById(
-      "monthCycleSelect"
-    ).value;
-
-
-  if (
-    !selectedKey ||
-    !currentMatchedRow
-  ) {
-
-    return;
-
-  }
-
-
-  const [
-    targetYear,
-    targetMonth
-  ] =
-    selectedKey
-      .split("-")
-      .map(Number);
-
+  let [targetYear, targetMonth] = selectedKey.split("-").map(Number);
 
   let tbodyHtml = "";
+  let totalDays = 0, pCount = 0, nCount = 0, lCount = 0, hdCount = 0, aCount = 0;
+  
+  const today = new Date();
+  today.setHours(23, 59, 59, 999);
 
+  dateColumnsInfo.forEach(item => {
+    let d = item.dateObj;
+    let day = d.getDate();
+    let month = d.getMonth();
+    let year = d.getFullYear();
 
-  let totalDays = 0;
+    let itemCycleMonth, itemCycleYear;
+    if(day >= 26) {
+      itemCycleMonth = (month + 1) % 12;
+      itemCycleYear = month === 11 ? year + 1 : year;
+    } else {
+      itemCycleMonth = month;
+      itemCycleYear = year;
+    }
 
-  let pCount = 0;
+    if(itemCycleMonth === targetMonth && itemCycleYear === targetYear) {
+      if(d > today) return;
 
-  let nCount = 0;
+      let statusVal = currentMatchedRow[item.colIndex] ? String(currentMatchedRow[item.colIndex]).trim() : "";
+      let upperStatus = statusVal.toUpperCase();
 
-  let lCount = 0;
-
-  let hdCount = 0;
-
-  let aCount = 0;
-
-
-  const renderedDates =
-    new Set();
-
-
-  const today =
-    new Date();
-
-
-  today.setHours(
-    23,
-    59,
-    59,
-    999
-  );
-
-
-  dateColumnsInfo.forEach(
-    item => {
-
-      const d =
-        item.dateObj;
-
-
-      const day =
-        d.getDate();
-
-
-      const month =
-        d.getMonth();
-
-
-      const year =
-        d.getFullYear();
-
-
-      let itemCycleMonth;
-
-      let itemCycleYear;
-
-
-      if (day >= 26) {
-
-        itemCycleMonth =
-          (month + 1) % 12;
-
-
-        itemCycleYear =
-          month === 11
-            ? year + 1
-            : year;
-
-      } else {
-
-        itemCycleMonth =
-          month;
-
-
-        itemCycleYear =
-          year;
-
-      }
-
-
-      if (
-        itemCycleMonth !==
-          targetMonth ||
-        itemCycleYear !==
-          targetYear ||
-        d > today
-      ) {
-
-        return;
-
-      }
-
-
-      const dateKey =
-        `${year}-${month}-${day}`;
-
-
-      let statusVal =
-        getCell(
-          item.row,
-          item.colIndex
-        );
-
-
-      // ======================================================
-      // DUPLICATE DATE HANDLING
-      // ======================================================
-
-      if (
-        renderedDates.has(dateKey)
-      ) {
-
-        return;
-
-      }
-
-
-      if (!statusVal) {
-
+      if(!statusVal) {
+        upperStatus = "A";
         statusVal = "A";
-
       }
-
-
-      const upperStatus =
-        statusVal
-          .toUpperCase()
-          .trim();
-
 
       totalDays++;
-
-
-      if (
-        upperStatus === "P"
-      ) {
-
-        pCount++;
-
-      }
-
-      else if (
-        upperStatus === "N"
-      ) {
-
-        nCount++;
-
-      }
-
-      else if (
-        upperStatus === "L"
-      ) {
-
-        lCount++;
-
-      }
-
-      else if (
-        upperStatus === "HD"
-      ) {
-
-        hdCount++;
-
-      }
-
-      else if (
-        upperStatus === "A"
-      ) {
-
-        aCount++;
-
-      }
-
-
-      // ======================================================
-      // STATUS CLASS
-      // ======================================================
-
       let statusClass = "";
 
+      if(upperStatus === "P") { pCount++; statusClass = "status-P"; }
+      else if(upperStatus === "N") { nCount++; statusClass = "status-N"; }
+      else if(upperStatus === "L") { lCount++; statusClass = "status-L"; }
+      else if(upperStatus === "HD") { hdCount++; statusClass = "status-HD"; }
+      else if(upperStatus === "WO") { statusClass = "status-WO"; }
+      else if(upperStatus === "A") { aCount++; statusClass = "status-A"; }
 
-      if (
-        upperStatus === "P"
-      ) {
-
-        statusClass =
-          "status-P";
-
-      }
-
-      else if (
-        upperStatus === "N"
-      ) {
-
-        statusClass =
-          "status-N";
-
-      }
-
-      else if (
-        upperStatus === "L"
-      ) {
-
-        statusClass =
-          "status-L";
-
-      }
-
-      else if (
-        upperStatus === "HD"
-      ) {
-
-        statusClass =
-          "status-HD";
-
-      }
-
-      else if (
-        upperStatus === "WO"
-      ) {
-
-        statusClass =
-          "status-WO";
-
-      }
-
-      else if (
-        upperStatus === "A"
-      ) {
-
-        statusClass =
-          "status-A";
-
-      }
-
-
-      tbodyHtml += `
-
-        <tr data-date-key="${dateKey}">
-
-          <td>
-            <b>
-              ${item.cleanDateStr}
-            </b>
-          </td>
-
-          <td class="${statusClass}">
-            ${escapeHtml(statusVal)}
-          </td>
-
-        </tr>
-
-      `;
-
-
-      renderedDates.add(
-        dateKey
-      );
-
+      tbodyHtml += `<tr>
+        <td><b>${item.cleanDateStr}</b></td>
+        <td class="${statusClass}">${statusVal}</td>
+      </tr>`;
     }
-  );
+  });
 
-
-  // ==========================================================
-  // UPDATE TABLE
-  // ==========================================================
-
-  document.getElementById(
-    "attendanceTbody"
-  ).innerHTML =
-    tbodyHtml;
-
-
-  // ==========================================================
-  // UPDATE KPI
-  // ==========================================================
-
-  document.getElementById(
-    "kpiTotal"
-  ).textContent =
-    totalDays;
-
-
-  document.getElementById(
-    "kpiPresent"
-  ).textContent =
-    pCount;
-
-
-  document.getElementById(
-    "kpiNight"
-  ).textContent =
-    nCount;
-
-
-  document.getElementById(
-    "kpiLeave"
-  ).textContent =
-    lCount;
-
-
-  document.getElementById(
-    "kpiHalfDay"
-  ).textContent =
-    hdCount;
-
-
-  document.getElementById(
-    "kpiAbsent"
-  ).textContent =
-    aCount;
-
+  document.getElementById("attendanceTbody").innerHTML = tbodyHtml;
+  document.getElementById("kpiTotal").textContent = totalDays;
+  document.getElementById("kpiPresent").textContent = pCount;
+  document.getElementById("kpiNight").textContent = nCount;
+  document.getElementById("kpiLeave").textContent = lCount;
+  document.getElementById("kpiHalfDay").textContent = hdCount;
+  document.getElementById("kpiAbsent").textContent = aCount;
 }
 
-
-// ============================================================
-// ESCAPE HTML
-// ============================================================
-
-function escapeHtml(value) {
-
-  return String(value || "")
-
-    .replace(
-      /&/g,
-      "&amp;"
-    )
-
-    .replace(
-      /</g,
-      "&lt;"
-    )
-
-    .replace(
-      />/g,
-      "&gt;"
-    )
-
-    .replace(
-      /"/g,
-      "&quot;"
-    )
-
-    .replace(
-      /'/g,
-      "&#039;"
-    );
-
-}
-
-
-// ============================================================
-// LOGOUT
-// ============================================================
-
-function offrollViewLogout() {
-
-  document.getElementById(
-    "offrollViewLogin"
-  ).style.display =
-    "block";
-
-
-  document.getElementById(
-    "offrollViewPrivate"
-  ).classList.remove(
-    "show"
-  );
-
-
-  document.getElementById(
-    "loginEmpId"
-  ).value =
-    "";
-
-
-  document.getElementById(
-    "loginEmpName"
-  ).value =
-    "";
-
-
-  currentMatchedRow =
-    null;
-
-
-  currentHeaderRow =
-    null;
-
-
-  dateColumnsInfo =
-    [];
-
+function offrollViewLogout(){
+  document.getElementById("offrollViewLogin").style.display = "block";
+  document.getElementById("offrollViewPrivate").classList.remove("show");
+  document.getElementById("loginEmpId").value = "";
+  document.getElementById("loginEmpName").value = "";
 }
 </script>
+
+</body>
+</html>
