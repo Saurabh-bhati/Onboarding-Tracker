@@ -36,13 +36,11 @@ h1{font-size:18px;margin:0 0 2px}
 .month-selector select{padding:8px 12px;border-radius:8px;border:1px solid #ccd5df;font-size:13px;font-weight:700;background:#f7f9fb;outline:0;cursor:pointer}
 .logout-btn{border:1px solid #f5c6cb;background:#fff;padding:8px 14px;border-radius:8px;font-weight:700;cursor:pointer;color:#d32f2f;font-size:13px}
 
-/* KPI Cards Layout */
 .offroll-view-kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:16px}
 .offroll-view-kpi{background:#fff;border:1px solid #e3e8ee;border-radius:12px;padding:12px 14px}
 .offroll-view-kpi small{color:#6b7785;text-transform:uppercase;font-weight:700;font-size:10px}
 .offroll-view-kpi strong{display:block;font-size:20px;margin-top:4px}
 
-/* Employee Profile Details Grid */
 .offroll-view-employee{background:#fff;border:1px solid #e1e6eb;border-radius:12px;padding:16px;margin-bottom:16px}
 .offroll-view-employee h4{margin:0 0 12px;font-size:13px;text-transform:uppercase;color:#657281;letter-spacing:0.5px}
 .offroll-view-employee-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
@@ -50,14 +48,12 @@ h1{font-size:18px;margin:0 0 2px}
 .offroll-view-employee-item small{display:block;color:#6b7785;font-size:10px;font-weight:700;text-transform:uppercase;margin-bottom:4px}
 .offroll-view-employee-item b{font-size:13px;word-break:break-word}
 
-/* Table Area */
 .table-card{background:#fff;border:1px solid #e1e6eb;border-radius:12px;padding:16px}
 .table-wrap{overflow:auto;max-height:500px;border:1px solid #edf0f3;border-radius:8px}
 table{border-collapse:collapse;width:100%;font-size:13px}
 th,td{padding:10px 14px;border-bottom:1px solid #edf0f3;text-align:left;white-space:nowrap}
 th{position:sticky;top:0;background:#f7f9fb;z-index:1;font-size:11px;text-transform:uppercase;color:#657281}
 
-/* Status Color Coding */
 .status-P{color:#18753b;font-weight:700}
 .status-N{color:#1565c0;font-weight:700}
 .status-L{color:#e2a400;font-weight:700}
@@ -65,7 +61,6 @@ th{position:sticky;top:0;background:#f7f9fb;z-index:1;font-size:11px;text-transf
 .status-WO{color:#6a1b9a;font-weight:700}
 .status-A{color:#d32f2f;font-weight:700}
 
-/* Mobile Responsiveness Rules */
 @media (max-width: 900px) {
   .offroll-view-kpis{grid-template-columns:repeat(3,1fr)}
   .offroll-view-employee-grid{grid-template-columns:repeat(2,1fr)}
@@ -174,13 +169,12 @@ th{position:sticky;top:0;background:#f7f9fb;z-index:1;font-size:11px;text-transf
 </main>
 
 <script>
-// Multiple Sheets CSV URLs
 const GOOGLE_SHEET_URLS = [
   "https://docs.google.com/spreadsheets/d/e/2PACX-1vRFoCW6qj1J85c8Z1sOSJqvexKtECuM1UMEANVIFQ1yVJRvGixR5VNh4VT66O23pi7p8y2sLc543337/pub?gid=1333099798&single=true&output=csv",
   "https://docs.google.com/spreadsheets/d/e/2PACX-1vQYBjt11wkD13f_LHrdq_hzTV53_pObPlxxvQKTaOmxthhkk_ARzRec3asnmc1A_Bfh7-Ok74Cb2Mfh/pub?gid=1787118786&single=true&output=csv"
 ];
 
-let parsedData = [];
+let allSheetsData = [];
 let currentMatchedRow = null;
 let currentHeaderRow = null;
 let dateColumnsInfo = [];
@@ -191,28 +185,25 @@ function fetchSheetData() {
   const syncText = document.getElementById("syncText");
   syncText.textContent = "🔄 Fetching latest data from Google Sheets...";
   
-  parsedData = [];
+  allSheetsData = [];
   let completedFetches = 0;
-  let hasError = false;
 
   GOOGLE_SHEET_URLS.forEach((sheetUrl) => {
     Papa.parse(sheetUrl + "&t=" + new Date().getTime(), {
       download: true,
       complete: function(results) {
         if (results.data && results.data.length > 0) {
-          parsedData = parsedData.concat(results.data);
+          allSheetsData.push(results.data);
         }
         completedFetches++;
-        
         if (completedFetches === GOOGLE_SHEET_URLS.length) {
           syncText.innerHTML = "🟢 <b>Live Connected:</b> Multiple Google Sheets ka Data Synced hai!";
         }
       },
       error: function(err) {
-        hasError = true;
         completedFetches++;
         if (completedFetches === GOOGLE_SHEET_URLS.length) {
-          syncText.textContent = "⚠️ Kuch Sheets load nahi ho payi. Refresh karke fir try karein.";
+          syncText.textContent = "⚠️ Data load hone mein samasya aayi. Refresh karein.";
         }
       }
     });
@@ -264,39 +255,42 @@ function verifyUserAndLogin() {
     return;
   }
 
-  if(parsedData.length === 0){
+  if(allSheetsData.length === 0){
     alert("Data load ho raha hai, kripya Refresh Data par click karke try karein.");
     return;
   }
 
   currentMatchedRow = null;
+  currentHeaderRow = null;
 
-  for(let i=0; i<parsedData.length; i++){
-    let row = parsedData[i];
-    if(row && row.length > 2){
-      let sheetEmpId = cleanString(row[1]);
-      let sheetEmpName = cleanString(row[2]);
+  for(let s = 0; s < allSheetsData.length; s++) {
+    let sheetRows = allSheetsData[s];
+    let headerCandidate = null;
 
-      if(sheetEmpId === inputEmpId && sheetEmpName === inputEmpName){
-        currentMatchedRow = row;
-        break;
+    for(let i = 0; i < sheetRows.length; i++) {
+      let row = sheetRows[i];
+      if(row && row.length > 2) {
+        if(!headerCandidate && String(row[1]).toLowerCase().includes("emp")) {
+          headerCandidate = row;
+        }
+
+        let sheetEmpId = cleanString(row[1]);
+        let sheetEmpName = cleanString(row[2]);
+
+        if(sheetEmpId === inputEmpId && sheetEmpName === inputEmpName) {
+          currentMatchedRow = row;
+          currentHeaderRow = headerCandidate || sheetRows[1] || sheetRows[0];
+          break;
+        }
       }
     }
+    if(currentMatchedRow) break;
   }
 
   if(!currentMatchedRow) {
-    alert("Invalid Credentials! User ID (Emp ID) ya Password (Name) sahi nahi hai.");
+    alert("Invalid Credentials! User ID (Emp ID) ya Password (Name) nahi mila.");
     return;
   }
-
-  currentHeaderRow = null;
-  for(let i=0; i<parsedData.length; i++){
-    if(parsedData[i] && String(parsedData[i][1]).toLowerCase().includes("emp")){
-      currentHeaderRow = parsedData[i];
-      break;
-    }
-  }
-  if(!currentHeaderRow) currentHeaderRow = parsedData[1] || parsedData[0];
 
   document.getElementById("dispEmpId").textContent = currentMatchedRow[1] || "-";
   document.getElementById("dispEmpName").textContent = currentMatchedRow[2] || "-";
@@ -308,11 +302,15 @@ function verifyUserAndLogin() {
   document.getElementById("dispVendor").textContent = currentMatchedRow[8] || "-";
 
   dateColumnsInfo = [];
-  for(let col = 9; col < currentMatchedRow.length; col++){
+  for(let col = 3; col < currentMatchedRow.length; col++){
     let dateStr = currentHeaderRow[col] ? currentHeaderRow[col].trim() : "";
-    if(!dateStr || dateStr.toLowerCase().includes("present") || dateStr.toLowerCase().includes("total") || dateStr.toLowerCase().includes("night")) {
+    if(!dateStr) continue;
+
+    let lowerDate = dateStr.toLowerCase();
+    if(lowerDate.includes("present") || lowerDate.includes("total") || lowerDate.includes("night") || lowerDate.includes("absent") || lowerDate.includes("leave")) {
       continue;
     }
+
     let parsedDate = parseSheetDate(dateStr);
     if(parsedDate) {
       dateColumnsInfo.push({
