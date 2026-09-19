@@ -98,7 +98,7 @@ th{position:sticky;top:0;background:#f7f9fb;z-index:1;font-size:11px;text-transf
 <main class="wrap">
 
   <div class="sync-status">
-    <span id="syncText">🔗 Google Sheet se connect ho raha hai...</span>
+    <span id="syncText">🔗 Google Sheets se connect ho raha hai...</span>
     <button onclick="fetchSheetData()" style="background:#fff;border:1px solid #ccd5df;padding:5px 10px;border-radius:6px;cursor:pointer;font-weight:700;font-size:12px">🔄 Refresh Data</button>
   </div>
 
@@ -126,7 +126,6 @@ th{position:sticky;top:0;background:#f7f9fb;z-index:1;font-size:11px;text-transf
         <p>Verified Credentials</p>
       </div>
       
-      <!-- Month Cycle Filter -->
       <div class="month-selector">
         <label>Cycle Month:</label>
         <select id="monthCycleSelect" onchange="renderSelectedMonthAttendance()"></select>
@@ -134,7 +133,6 @@ th{position:sticky;top:0;background:#f7f9fb;z-index:1;font-size:11px;text-transf
       </div>
     </div>
 
-    <!-- Attendance Summary KPIs -->
     <div class="offroll-view-kpis">
       <div class="offroll-view-kpi"><small>Total Days</small><strong id="kpiTotal">0</strong></div>
       <div class="offroll-view-kpi"><small>Present (P)</small><strong id="kpiPresent" style="color:#18753b">0</strong></div>
@@ -144,7 +142,6 @@ th{position:sticky;top:0;background:#f7f9fb;z-index:1;font-size:11px;text-transf
       <div class="offroll-view-kpi"><small>Absent (A)</small><strong id="kpiAbsent" style="color:#d32f2f">0</strong></div>
     </div>
 
-    <!-- Employee Information Section -->
     <section class="offroll-view-employee">
       <h4>Employee Information</h4>
       <div class="offroll-view-employee-grid">
@@ -159,7 +156,6 @@ th{position:sticky;top:0;background:#f7f9fb;z-index:1;font-size:11px;text-transf
       </div>
     </section>
 
-    <!-- Daily Attendance Table -->
     <section class="table-card">
       <div class="table-wrap">
         <table>
@@ -178,8 +174,11 @@ th{position:sticky;top:0;background:#f7f9fb;z-index:1;font-size:11px;text-transf
 </main>
 
 <script>
-// Naya Published Google Sheet URL Update kar diya gaya hai
-const GOOGLE_SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRFoCW6qj1J85c8Z1sOSJqvexKtECuM1UMEANVIFQ1yVJRvGixR5VNh4VT66O23pi7p8y2sLc543337/pub?gid=1333099798&single=true&output=csv";
+// Multiple Sheets CSV URLs
+const GOOGLE_SHEET_URLS = [
+  "https://docs.google.com/spreadsheets/d/e/2PACX-1vRFoCW6qj1J85c8Z1sOSJqvexKtECuM1UMEANVIFQ1yVJRvGixR5VNh4VT66O23pi7p8y2sLc543337/pub?gid=1333099798&single=true&output=csv",
+  "https://docs.google.com/spreadsheets/d/e/2PACX-1vQYBjt11wkD13f_LHrdq_hzTV53_pObPlxxvQKTaOmxthhkk_ARzRec3asnmc1A_Bfh7-Ok74Cb2Mfh/pub?gid=1787118786&single=true&output=csv"
+];
 
 let parsedData = [];
 let currentMatchedRow = null;
@@ -190,17 +189,33 @@ const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep
 
 function fetchSheetData() {
   const syncText = document.getElementById("syncText");
-  syncText.textContent = "🔄 Fetching latest data from Google Sheet...";
+  syncText.textContent = "🔄 Fetching latest data from Google Sheets...";
+  
+  parsedData = [];
+  let completedFetches = 0;
+  let hasError = false;
 
-  Papa.parse(GOOGLE_SHEET_CSV_URL + "&t=" + new Date().getTime(), {
-    download: true,
-    complete: function(results) {
-      parsedData = results.data;
-      syncText.innerHTML = "🟢 <b>Live Connected:</b> Google Sheet ka Live Data Synced hai!";
-    },
-    error: function(err) {
-      syncText.textContent = "❌ Sheet load nahi ho payi. Kripya page refresh karein.";
-    }
+  GOOGLE_SHEET_URLS.forEach((sheetUrl) => {
+    Papa.parse(sheetUrl + "&t=" + new Date().getTime(), {
+      download: true,
+      complete: function(results) {
+        if (results.data && results.data.length > 0) {
+          parsedData = parsedData.concat(results.data);
+        }
+        completedFetches++;
+        
+        if (completedFetches === GOOGLE_SHEET_URLS.length) {
+          syncText.innerHTML = "🟢 <b>Live Connected:</b> Multiple Google Sheets ka Data Synced hai!";
+        }
+      },
+      error: function(err) {
+        hasError = true;
+        completedFetches++;
+        if (completedFetches === GOOGLE_SHEET_URLS.length) {
+          syncText.textContent = "⚠️ Kuch Sheets load nahi ho payi. Refresh karke fir try karein.";
+        }
+      }
+    });
   });
 }
 
