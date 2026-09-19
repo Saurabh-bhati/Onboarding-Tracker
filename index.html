@@ -103,11 +103,11 @@ th{position:sticky;top:0;background:#f7f9fb;z-index:1;font-size:11px;text-transf
     
     <form class="offroll-login-form" onsubmit="event.preventDefault(); verifyUserAndLogin();">
       <label>User ID (Emp ID)
-        <input id="loginEmpId" type="text" placeholder="e.g. V5877201090" required>
+        <input id="loginEmpId" type="text" placeholder="e.g. D0318010190" required>
       </label>
 
       <label>Password (Employee Name)
-        <input id="loginEmpName" type="password" placeholder="e.g. Anil Kumar" required>
+        <input id="loginEmpName" type="password" placeholder="e.g. Rahul Kumar" required>
       </label>
 
       <button type="submit">Login to Dashboard</button>
@@ -197,14 +197,11 @@ function fetchSheetData() {
         }
         completedFetches++;
         if (completedFetches === GOOGLE_SHEET_URLS.length) {
-          syncText.innerHTML = "🟢 <b>Live Connected:</b> Multiple Google Sheets ka Data Synced hai!";
+          syncText.innerHTML = "🟢 <b>Live Connected:</b> Multiple Google Sheets Synced!";
         }
       },
-      error: function(err) {
+      error: function() {
         completedFetches++;
-        if (completedFetches === GOOGLE_SHEET_URLS.length) {
-          syncText.textContent = "⚠️ Data load hone mein samasya aayi. Refresh karein.";
-        }
       }
     });
   });
@@ -262,28 +259,62 @@ function verifyUserAndLogin() {
 
   currentMatchedRow = null;
   currentHeaderRow = null;
+  let empIdCol = -1;
+  let empNameCol = -1;
 
   for(let s = 0; s < allSheetsData.length; s++) {
     let sheetRows = allSheetsData[s];
-    let headerCandidate = null;
 
-    for(let i = 0; i < sheetRows.length; i++) {
-      let row = sheetRows[i];
-      if(row && row.length > 2) {
-        if(!headerCandidate && String(row[1]).toLowerCase().includes("emp")) {
-          headerCandidate = row;
+    // Find Header Row dynamically
+    let hRow = null;
+    let tempEmpCol = -1;
+    let tempNameCol = -1;
+
+    for(let r = 0; r < Math.min(5, sheetRows.length); r++) {
+      let row = sheetRows[r];
+      if(!row) continue;
+      for(let c = 0; c < row.length; c++) {
+        let val = cleanString(row[c]);
+        if(val.includes("emp") || val.includes("code") || val.includes("id")) {
+          if(tempEmpCol === -1) tempEmpCol = c;
         }
-
-        let sheetEmpId = cleanString(row[1]);
-        let sheetEmpName = cleanString(row[2]);
-
-        if(sheetEmpId === inputEmpId && sheetEmpName === inputEmpName) {
-          currentMatchedRow = row;
-          currentHeaderRow = headerCandidate || sheetRows[1] || sheetRows[0];
-          break;
+        if(val.includes("name") || val.includes("employee name")) {
+          if(tempNameCol === -1) tempNameCol = c;
         }
       }
+      if(tempEmpCol !== -1 && tempNameCol !== -1) {
+        hRow = row;
+        break;
+      }
     }
+
+    // Default column fallback if header text not found
+    if(tempEmpCol === -1) tempEmpCol = 0;
+    if(tempNameCol === -1) tempNameCol = 1;
+
+    // Search user in rows
+    for(let i = 0; i < sheetRows.length; i++) {
+      let row = sheetRows[i];
+      if(!row) continue;
+
+      let foundEmp = false;
+      let foundName = false;
+
+      for(let c = 0; c < row.length; c++) {
+        let cellVal = cleanString(row[c]);
+        if(cellVal === inputEmpId) foundEmp = true;
+        if(cellVal === inputEmpName) foundName = true;
+      }
+
+      if(foundEmp && foundName) {
+        currentMatchedRow = row;
+        currentHeaderRow = hRow || sheetRows[0];
+        empIdCol = tempEmpCol;
+        empNameCol = tempNameCol;
+        break;
+      }
+    }
+
     if(currentMatchedRow) break;
   }
 
@@ -292,22 +323,24 @@ function verifyUserAndLogin() {
     return;
   }
 
-  document.getElementById("dispEmpId").textContent = currentMatchedRow[1] || "-";
-  document.getElementById("dispEmpName").textContent = currentMatchedRow[2] || "-";
-  document.getElementById("dispFatherName").textContent = currentMatchedRow[3] || "-";
-  document.getElementById("dispDept").textContent = currentMatchedRow[4] || "-";
-  document.getElementById("dispDesig").textContent = currentMatchedRow[5] || "-";
-  document.getElementById("dispDoj").textContent = currentMatchedRow[6] || "-";
-  document.getElementById("dispStatus").textContent = currentMatchedRow[7] || "-";
-  document.getElementById("dispVendor").textContent = currentMatchedRow[8] || "-";
+  // Display details safely
+  document.getElementById("dispEmpId").textContent = currentMatchedRow[empIdCol] || inputEmpId;
+  document.getElementById("dispEmpName").textContent = currentMatchedRow[empNameCol] || inputEmpName;
+  document.getElementById("dispFatherName").textContent = currentMatchedRow[2] || "-";
+  document.getElementById("dispDept").textContent = currentMatchedRow[3] || "-";
+  document.getElementById("dispDesig").textContent = currentMatchedRow[4] || "-";
+  document.getElementById("dispDoj").textContent = currentMatchedRow[5] || "-";
+  document.getElementById("dispStatus").textContent = currentMatchedRow[6] || "-";
+  document.getElementById("dispVendor").textContent = currentMatchedRow[7] || "-";
 
+  // Dynamic Date Search across columns
   dateColumnsInfo = [];
-  for(let col = 3; col < currentMatchedRow.length; col++){
-    let dateStr = currentHeaderRow[col] ? currentHeaderRow[col].trim() : "";
+  for(let col = 0; col < currentMatchedRow.length; col++){
+    let dateStr = currentHeaderRow && currentHeaderRow[col] ? currentHeaderRow[col].trim() : "";
     if(!dateStr) continue;
 
     let lowerDate = dateStr.toLowerCase();
-    if(lowerDate.includes("present") || lowerDate.includes("total") || lowerDate.includes("night") || lowerDate.includes("absent") || lowerDate.includes("leave")) {
+    if(lowerDate.includes("present") || lowerDate.includes("total") || lowerDate.includes("night") || lowerDate.includes("absent") || lowerDate.includes("leave") || lowerDate.includes("name") || lowerDate.includes("emp")) {
       continue;
     }
 
