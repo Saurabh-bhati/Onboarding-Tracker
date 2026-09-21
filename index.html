@@ -243,6 +243,22 @@ function formatCleanDateStr(dateObj) {
   return `${day}-${monthShort}`;
 }
 
+// Helper Function: Dynamic Header Search for exact Employee Information mapping
+function findValueByColumnHeader(headerRow, dataRow, possibleKeywords) {
+  if (!headerRow || !dataRow) return "-";
+  
+  for (let i = 0; i < headerRow.length; i++) {
+    let headerText = cleanString(headerRow[i]);
+    for (let key of possibleKeywords) {
+      if (headerText.includes(key)) {
+        let val = dataRow[i] ? String(dataRow[i]).trim() : "";
+        if (val) return val;
+      }
+    }
+  }
+  return "-";
+}
+
 function verifyUserAndLogin() {
   const inputEmpId = cleanString(document.getElementById("loginEmpId").value);
   const inputEmpName = cleanString(document.getElementById("loginEmpName").value);
@@ -296,15 +312,15 @@ function verifyUserAndLogin() {
     return;
   }
 
-  // Display Profile Details
-  document.getElementById("dispEmpId").textContent = document.getElementById("loginEmpId").value;
-  document.getElementById("dispEmpName").textContent = document.getElementById("loginEmpName").value;
-  document.getElementById("dispFatherName").textContent = currentMatchedRow[2] || "-";
-  document.getElementById("dispDept").textContent = currentMatchedRow[3] || "-";
-  document.getElementById("dispDesig").textContent = currentMatchedRow[4] || "-";
-  document.getElementById("dispDoj").textContent = currentMatchedRow[5] || "-";
-  document.getElementById("dispStatus").textContent = currentMatchedRow[6] || "-";
-  document.getElementById("dispVendor").textContent = currentMatchedRow[7] || "-";
+  // Display Profile Details using Dynamic Header Mapping
+  document.getElementById("dispEmpId").textContent = findValueByColumnHeader(currentHeaderRow, currentMatchedRow, ["emp id", "empid", "user id", "code"]);
+  document.getElementById("dispEmpName").textContent = findValueByColumnHeader(currentHeaderRow, currentMatchedRow, ["emp name", "employee name", "name"]);
+  document.getElementById("dispFatherName").textContent = findValueByColumnHeader(currentHeaderRow, currentMatchedRow, ["father", "father name", "father's name"]);
+  document.getElementById("dispDept").textContent = findValueByColumnHeader(currentHeaderRow, currentMatchedRow, ["dept", "department"]);
+  document.getElementById("dispDesig").textContent = findValueByColumnHeader(currentHeaderRow, currentMatchedRow, ["designation", "desig", "role"]);
+  document.getElementById("dispDoj").textContent = findValueByColumnHeader(currentHeaderRow, currentMatchedRow, ["doj", "date of joining", "joining date"]);
+  document.getElementById("dispStatus").textContent = findValueByColumnHeader(currentHeaderRow, currentMatchedRow, ["status", "emp status"]);
+  document.getElementById("dispVendor").textContent = findValueByColumnHeader(currentHeaderRow, currentMatchedRow, ["vendor", "vendor name"]);
 
   // Scan date headers
   dateColumnsInfo = [];
@@ -313,7 +329,7 @@ function verifyUserAndLogin() {
     if(!dateStr) continue;
 
     let lowerDate = dateStr.toLowerCase();
-    if(lowerDate.includes("present") || lowerDate.includes("total") || lowerDate.includes("night") || lowerDate.includes("absent") || lowerDate.includes("leave") || lowerDate.includes("name") || lowerDate.includes("emp")) {
+    if(lowerDate.includes("present") || lowerDate.includes("total") || lowerDate.includes("night") || lowerDate.includes("absent") || lowerDate.includes("leave") || lowerDate.includes("name") || lowerDate.includes("emp") || lowerDate.includes("father") || lowerDate.includes("dept") || lowerDate.includes("vendor") || lowerDate.includes("status")) {
       continue;
     }
 
