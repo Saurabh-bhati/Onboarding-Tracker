@@ -1,476 +1,315 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>PW - Offroll Attendance Portal</title>
-<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-<style>
-*{box-sizing:border-box}
-body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f3f5f7;color:#182230}
-.header{background:#151b23;color:#fff;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;gap:15px}
-.title{display:flex;align-items:center;gap:12px}
-.logo{width:38px;height:38px;border-radius:10px;background:#f57c00;display:grid;place-items:center;font-weight:900;color:#fff;font-size:18px}
-h1{font-size:18px;margin:0 0 2px}
-.sub{font-size:12px;color:#aeb9c6}
-.wrap{max-width:1200px;margin:auto;padding:15px}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Enterprise HRMS Dashboard</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Font Inter -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- PapaParse for CSV Data Parsing -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 
-.sync-status{background:#eef5ff;color:#175ea8;border:1px solid #d9e8fb;border-radius:10px;padding:12px 16px;font-size:13px;font-weight:700;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
-
-.offroll-login-card{max-width:420px;margin:20px auto;background:#fff;border:1px solid #e1e6eb;border-radius:14px;padding:24px;box-shadow:0 4px 16px #0000000d}
-.offroll-login-card h2{margin:0 0 8px;font-size:20px}
-.login-note{font-size:13px;color:#6d7a88;margin:0 0 20px}
-.offroll-login-form{display:grid;gap:16px}
-.offroll-login-form label{display:flex;flex-direction:column;gap:6px;font-size:11px;color:#657281;font-weight:700;text-transform:uppercase}
-.offroll-login-form input{width:100%;padding:12px;border:1px solid #ccd5df;border-radius:8px;font-size:14px;outline:0}
-.offroll-login-form button{width:100%;margin-top:8px;background:#151b23;color:#fff;border:0;padding:12px;border-radius:8px;font-weight:700;font-size:15px;cursor:pointer}
-.offroll-login-form button:hover{background:#2b3440}
-
-.offroll-view-private{display:none}
-.offroll-view-private.show{display:block}
-.offroll-view-head{background:#fff;border:1px solid #e1e6eb;border-radius:12px;padding:16px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
-.offroll-view-head h3{margin:0 0 4px;font-size:18px}
-.offroll-view-head p{margin:0;font-size:12px;color:#6d7a88}
-.month-selector{display:flex;align-items:center;gap:10px}
-.month-selector label{font-size:12px;font-weight:700;color:#657281;text-transform:uppercase}
-.month-selector select{padding:8px 12px;border-radius:8px;border:1px solid #ccd5df;font-size:13px;font-weight:700;background:#f7f9fb;outline:0;cursor:pointer}
-.logout-btn{border:1px solid #f5c6cb;background:#fff;padding:8px 14px;border-radius:8px;font-weight:700;cursor:pointer;color:#d32f2f;font-size:13px}
-
-.offroll-view-kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:16px}
-.offroll-view-kpi{background:#fff;border:1px solid #e3e8ee;border-radius:12px;padding:12px 14px}
-.offroll-view-kpi small{color:#6b7785;text-transform:uppercase;font-weight:700;font-size:10px}
-.offroll-view-kpi strong{display:block;font-size:20px;margin-top:4px}
-
-.offroll-view-employee{background:#fff;border:1px solid #e1e6eb;border-radius:12px;padding:16px;margin-bottom:16px}
-.offroll-view-employee h4{margin:0 0 12px;font-size:13px;text-transform:uppercase;color:#657281;letter-spacing:0.5px}
-.offroll-view-employee-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
-.offroll-view-employee-item{background:#f7f9fb;border-radius:8px;padding:10px;border:1px solid #edf0f3}
-.offroll-view-employee-item small{display:block;color:#6b7785;font-size:10px;font-weight:700;text-transform:uppercase;margin-bottom:4px}
-.offroll-view-employee-item b{font-size:13px;word-break:break-word}
-
-.table-card{background:#fff;border:1px solid #e1e6eb;border-radius:12px;padding:16px}
-.table-wrap{overflow:auto;max-height:500px;border:1px solid #edf0f3;border-radius:8px}
-table{border-collapse:collapse;width:100%;font-size:13px}
-th,td{padding:10px 14px;border-bottom:1px solid #edf0f3;text-align:left;white-space:nowrap}
-th{position:sticky;top:0;background:#f7f9fb;z-index:1;font-size:11px;text-transform:uppercase;color:#657281}
-
-.status-P{color:#18753b;font-weight:700}
-.status-N{color:#1565c0;font-weight:700}
-.status-L{color:#e2a400;font-weight:700}
-.status-HD{color:#e65100;font-weight:700}
-.status-WO{color:#6a1b9a;font-weight:700}
-.status-A{color:#d32f2f;font-weight:700}
-
-@media (max-width: 900px) {
-  .offroll-view-kpis{grid-template-columns:repeat(3,1fr)}
-  .offroll-view-employee-grid{grid-template-columns:repeat(2,1fr)}
-}
-
-@media (max-width: 600px) {
-  .wrap{padding:10px}
-  .header{padding:14px;flex-direction:column;align-items:flex-start}
-  .sync-status{font-size:12px}
-  .offroll-view-kpis{grid-template-columns:repeat(2,1fr);gap:8px}
-  .offroll-view-employee-grid{grid-template-columns:1fr;gap:8px}
-  .offroll-login-card{margin:20px 10px;padding:20px}
-  .offroll-view-head{flex-direction:column;align-items:flex-start}
-  th,td{padding:8px 10px}
-}
-</style>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      height: 8px;
+      width: 8px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+  </style>
 </head>
-<body>
+<body class="bg-slate-50 text-slate-800 antialiased h-screen overflow-hidden">
 
-<header class="header">
- <div class="title">
-    <div class="logo">P</div>
-    <div>
-      <h1>PW - Offroll Attendance Portal</h1>
-      <div class="sub">Emp ID & Password Login</div>
-    </div>
- </div>
-</header>
-
-<main class="wrap">
-
-  <div class="sync-status">
-    <span id="syncText">🔗 Google Sheets se connect ho raha hai...</span>
-    <button onclick="fetchSheetData()" style="background:#fff;border:1px solid #ccd5df;padding:5px 10px;border-radius:6px;cursor:pointer;font-weight:700;font-size:12px">🔄 Refresh Data</button>
-  </div>
-
-  <div id="offrollViewLogin" class="offroll-login-card">
-    <h2>Employee Login</h2>
-    <p class="login-note">Apna <b>Emp ID</b> (User ID) aur <b>Employee Name</b> (Password) enter karein.</p>
-    
-    <form class="offroll-login-form" onsubmit="event.preventDefault(); verifyUserAndLogin();">
-      <label>User ID (Emp ID)
-        <input id="loginEmpId" type="text" placeholder="e.g. D0318010190" required>
-      </label>
-
-      <label>Password (Employee Name)
-        <input id="loginEmpName" type="password" placeholder="e.g. Rahul Kumar" required>
-      </label>
-
-      <button type="submit">Login to Dashboard</button>
-    </form>
-  </div>
-
-  <div id="offrollViewPrivate" class="offroll-view-private">
-    <div class="offroll-view-head">
+  <div class="flex h-full">
+    <!-- Sidebar -->
+    <aside class="w-64 bg-slate-900 text-slate-300 flex flex-col justify-between p-5 shadow-xl z-20">
       <div>
-        <h3>My Attendance Dashboard</h3>
-        <p>Verified Credentials</p>
+        <!-- Logo -->
+        <div class="flex items-center gap-3 px-2 py-3 mb-6 border-b border-slate-800">
+          <div class="bg-blue-600 text-white p-2.5 rounded-xl shadow-lg shadow-blue-500/30">
+            <i class="fa-solid fa-users-gear text-xl"></i>
+          </div>
+          <div>
+            <h2 class="font-bold text-white text-base tracking-wide leading-tight">HR Portal</h2>
+            <span class="text-xs text-slate-400 font-medium">Enterprise Management</span>
+          </div>
+        </div>
+
+        <!-- Navigation Menu -->
+        <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider px-3 mb-3">Dashboards</div>
+        <nav class="space-y-2">
+          <button onclick="switchTab('hr')" id="btnHR" class="w-full text-left flex items-center justify-between p-3 rounded-xl bg-blue-600 text-white font-medium shadow-md shadow-blue-600/20 transition-all duration-200">
+            <span class="flex items-center gap-3"><i class="fa-solid fa-id-badge text-lg"></i> HR Onboarding</span>
+            <i class="fa-solid fa-chevron-right text-xs opacity-70"></i>
+          </button>
+          
+          <button onclick="switchTab('ops')" id="btnOps" class="w-full text-left flex items-center justify-between p-3 rounded-xl hover:bg-slate-800 text-slate-400 hover:text-slate-200 font-medium transition-all duration-200">
+            <span class="flex items-center gap-3"><i class="fa-solid fa-list-check text-lg"></i> Operations Sheet</span>
+            <i class="fa-solid fa-chevron-right text-xs opacity-70"></i>
+          </button>
+        </nav>
       </div>
+
+      <!-- Sync Status Footer -->
+      <div class="p-3 bg-slate-800/60 rounded-xl border border-slate-800">
+        <div class="flex items-center gap-2 text-xs font-medium text-emerald-400">
+          <span class="relative flex h-2 w-2">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+          </span>
+          Live Google Sheets Sync
+        </div>
+        <p class="text-[11px] text-slate-500 mt-1">Auto-updates on page refresh</p>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col h-full overflow-hidden">
       
-      <div class="month-selector">
-        <label>Cycle Month:</label>
-        <select id="monthCycleSelect" onchange="renderSelectedMonthAttendance()"></select>
-        <button class="logout-btn" onclick="offrollViewLogout()">Logout</button>
-      </div>
-    </div>
+      <!-- Top Header -->
+      <header class="bg-white border-b border-slate-200 px-8 py-4 flex justify-between items-center shadow-sm z-10">
+        <div>
+          <h1 id="tabTitle" class="text-2xl font-bold text-slate-900 tracking-tight">HR Onboarding Directory</h1>
+          <p class="text-xs text-slate-500 mt-0.5">Real-time candidate details and onboarding status</p>
+        </div>
 
-    <div class="offroll-view-kpis">
-      <div class="offroll-view-kpi"><small>Total Days</small><strong id="kpiTotal">0</strong></div>
-      <div class="offroll-view-kpi"><small>Present (P)</small><strong id="kpiPresent" style="color:#18753b">0</strong></div>
-      <div class="offroll-view-kpi"><small>Night Pres. (N)</small><strong id="kpiNight" style="color:#1565c0">0</strong></div>
-      <div class="offroll-view-kpi"><small>Leave (L)</small><strong id="kpiLeave" style="color:#e2a400">0</strong></div>
-      <div class="offroll-view-kpi"><small>Half Day (HD)</small><strong id="kpiHalfDay" style="color:#e65100">0</strong></div>
-      <div class="offroll-view-kpi"><small>Absent (A)</small><strong id="kpiAbsent" style="color:#d32f2f">0</strong></div>
-    </div>
+        <!-- Header Actions -->
+        <div class="flex items-center gap-4">
+          <!-- Search Bar -->
+          <div class="relative w-64">
+            <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+            <input type="text" id="searchInput" onkeyup="filterTable()" placeholder="Search employee, designation..." class="w-full pl-9 pr-4 py-2 bg-slate-100 border border-slate-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition">
+          </div>
 
-    <section class="offroll-view-employee">
-      <h4>Employee Information</h4>
-      <div class="offroll-view-employee-grid">
-        <div class="offroll-view-employee-item"><small>Emp ID</small><b id="dispEmpId">-</b></div>
-        <div class="offroll-view-employee-item"><small>Name</small><b id="dispEmpName">-</b></div>
-        <div class="offroll-view-employee-item"><small>Father Name</small><b id="dispFatherName">-</b></div>
-        <div class="offroll-view-employee-item"><small>Dept</small><b id="dispDept">-</b></div>
-        <div class="offroll-view-employee-item"><small>Designation</small><b id="dispDesig">-</b></div>
-        <div class="offroll-view-employee-item"><small>DOJ</small><b id="dispDoj">-</b></div>
-        <div class="offroll-view-employee-item"><small>Status</small><b id="dispStatus">-</b></div>
-        <div class="offroll-view-employee-item"><small>Vendor</small><b id="dispVendor">-</b></div>
-      </div>
-    </section>
+          <!-- Refresh Button -->
+          <button onclick="loadSheetData()" class="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-lg text-xs font-semibold flex items-center gap-2 shadow-sm transition">
+            <i class="fa-solid fa-rotate-right"></i> Sync Data
+          </button>
+        </div>
+      </header>
 
-    <section class="table-card">
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody id="attendanceTbody"></tbody>
-        </table>
+      <!-- Dashboard View Body -->
+      <div class="flex-1 p-8 overflow-hidden flex flex-col">
+
+        <!-- Quick Stats Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-6">
+          <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80 flex items-center gap-4">
+            <div class="p-3 bg-blue-50 text-blue-600 rounded-xl">
+              <i class="fa-solid fa-user-group text-xl"></i>
+            </div>
+            <div>
+              <p class="text-xs font-semibold uppercase text-slate-400 tracking-wider">Total Candidates</p>
+              <h3 id="statTotal" class="text-2xl font-bold text-slate-800 mt-0.5">--</h3>
+            </div>
+          </div>
+
+          <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80 flex items-center gap-4">
+            <div class="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
+              <i class="fa-solid fa-table-columns text-xl"></i>
+            </div>
+            <div>
+              <p class="text-xs font-semibold uppercase text-slate-400 tracking-wider">Data Columns</p>
+              <h3 id="statCols" class="text-2xl font-bold text-slate-800 mt-0.5">--</h3>
+            </div>
+          </div>
+
+          <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80 flex items-center gap-4">
+            <div class="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
+              <i class="fa-solid fa-circle-check text-xl"></i>
+            </div>
+            <div>
+              <p class="text-xs font-semibold uppercase text-slate-400 tracking-wider">Source Status</p>
+              <h3 class="text-base font-bold text-emerald-600 mt-0.5">Connected</h3>
+            </div>
+          </div>
+        </div>
+
+        <!-- Table Container Card -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 flex-1 flex flex-col overflow-hidden">
+          
+          <!-- Table Title Bar -->
+          <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+            <div class="flex items-center gap-2">
+              <i class="fa-solid fa-list-check text-blue-600 text-sm"></i>
+              <h3 id="directoryHeading" class="font-bold text-slate-800 text-sm tracking-wide">Candidate Records Directory</h3>
+            </div>
+            <span id="filteredCount" class="text-xs font-medium text-slate-500 bg-slate-200/60 px-2.5 py-1 rounded-full">Showing all entries</span>
+          </div>
+
+          <!-- Loading State -->
+          <div id="loader" class="flex-1 flex flex-col items-center justify-center p-8">
+            <div class="w-10 h-10 border-4 border-blue-600/20 border-t-blue-600 rounded-full animate-spin mb-3"></div>
+            <p class="text-xs font-medium text-slate-500">Fetching live data from Google Sheets...</p>
+          </div>
+
+          <!-- Table View -->
+          <div id="tableWrapper" class="flex-1 overflow-auto custom-scrollbar hidden">
+            <table class="w-full text-left border-collapse" id="hrmsTable">
+              <thead class="bg-slate-100/80 text-slate-600 uppercase text-[11px] tracking-wider font-semibold sticky top-0 z-10 backdrop-blur-sm border-b border-slate-200">
+                <tr id="tableHead"></tr>
+              </thead>
+              <tbody id="tableBody" class="divide-y divide-slate-100 text-xs text-slate-700 font-medium"></tbody>
+            </table>
+          </div>
+
+        </div>
+
       </div>
-    </section>
+    </main>
   </div>
 
-</main>
+  <script>
+    const sheetCsvUrls = {
+      hr: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR6DAT9uKgT8hruMlMEhJZE2X0O2Rm0g1YqkrkOXv0KSGkwdFqzAK5jRdxpDlvS_xQmwsf5EVTqC3Z-/pub?gid=622384515&single=true&output=csv',
+      ops: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR6DAT9uKgT8hruMlMEhJZE2X0O2Rm0g1YqkrkOXv0KSGkwdFqzAK5jRdxpDlvS_xQmwsf5EVTqC3Z-/pub?gid=0&single=true&output=csv'
+    };
 
-<script>
-const GOOGLE_SHEET_URLS = [
-  "https://docs.google.com/spreadsheets/d/e/2PACX-1vRFoCW6qj1J85c8Z1sOSJqvexKtECuM1UMEANVIFQ1yVJRvGixR5VNh4VT66O23pi7p8y2sLc543337/pub?gid=1333099798&single=true&output=csv",
-  "https://docs.google.com/spreadsheets/d/e/2PACX-1vQYBjt11wkD13f_LHrdq_hzTV53_pObPlxxvQKTaOmxthhkk_ARzRec3asnmc1A_Bfh7-Ok74Cb2Mfh/pub?gid=1787118786&single=true&output=csv"
-];
+    let activeTab = 'hr';
+    let globalParsedData = [];
 
-let allSheetsData = [];
-let currentMatchedRow = null;
-let currentHeaderRow = null;
-let dateColumnsInfo = [];
+    function switchTab(tab) {
+      activeTab = tab;
+      
+      const btnHR = document.getElementById('btnHR');
+      const btnOps = document.getElementById('btnOps');
+      const tabTitle = document.getElementById('tabTitle');
 
-const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      if (tab === 'hr') {
+        btnHR.className = "w-full text-left flex items-center justify-between p-3 rounded-xl bg-blue-600 text-white font-medium shadow-md shadow-blue-600/20 transition-all duration-200";
+        btnOps.className = "w-full text-left flex items-center justify-between p-3 rounded-xl hover:bg-slate-800 text-slate-400 hover:text-slate-200 font-medium transition-all duration-200";
+        tabTitle.textContent = "HR Onboarding Directory";
+      } else {
+        btnOps.className = "w-full text-left flex items-center justify-between p-3 rounded-xl bg-blue-600 text-white font-medium shadow-md shadow-blue-600/20 transition-all duration-200";
+        btnHR.className = "w-full text-left flex items-center justify-between p-3 rounded-xl hover:bg-slate-800 text-slate-400 hover:text-slate-200 font-medium transition-all duration-200";
+        tabTitle.textContent = "Operations Sheet Directory";
+      }
 
-function fetchSheetData() {
-  const syncText = document.getElementById("syncText");
-  syncText.textContent = "🔄 Google Sheets se latest data sync ho raha hai...";
-  
-  allSheetsData = [];
-  let completedFetches = 0;
+      document.getElementById('searchInput').value = '';
+      loadSheetData();
+    }
 
-  GOOGLE_SHEET_URLS.forEach((sheetUrl) => {
-    Papa.parse(sheetUrl + "&t=" + new Date().getTime(), {
-      download: true,
-      complete: function(results) {
-        if (results.data && results.data.length > 0) {
-          allSheetsData.push(results.data);
+    function loadSheetData() {
+      const loader = document.getElementById('loader');
+      const tableWrapper = document.getElementById('tableWrapper');
+      
+      loader.classList.remove('hidden');
+      tableWrapper.classList.add('hidden');
+
+      Papa.parse(sheetCsvUrls[activeTab], {
+        download: true,
+        header: false,
+        skipEmptyLines: 'greedy',
+        complete: function(results) {
+          globalParsedData = results.data;
+          renderHRMSTable(globalParsedData);
+          loader.classList.add('hidden');
+          tableWrapper.classList.remove('hidden');
+        },
+        error: function(err) {
+          alert('Failed to load Google Sheet data.');
+          console.error(err);
         }
-        completedFetches++;
-        if (completedFetches === GOOGLE_SHEET_URLS.length) {
-          syncText.innerHTML = "🟢 <b>Live Connected:</b> Multiple Google Sheets Synced!";
-        }
-      },
-      error: function() {
-        completedFetches++;
-      }
-    });
-  });
-}
-
-window.onload = fetchSheetData;
-
-function cleanString(str) {
-  return String(str || "").trim().toLowerCase().replace(/\s+/g, ' ');
-}
-
-function parseSheetDate(dateStr) {
-  if (!dateStr) return null;
-  let str = dateStr.trim();
-  let parts = str.split("-");
-  if (parts.length < 2) return null;
-
-  let day = parseInt(parts[0], 10);
-  let monthStr = parts[1].toLowerCase();
-
-  const monthMap = {
-    jan: 0, january: 0, feb: 1, february: 1, mar: 2, march: 2,
-    apr: 3, april: 3, may: 4, jun: 5, june: 5, jul: 6, july: 6,
-    aug: 7, august: 7, sep: 8, sept: 8, september: 8, oct: 9, october: 9,
-    nov: 10, november: 10, dec: 11, december: 11
-  };
-
-  let month = monthMap[monthStr];
-  if (month === undefined || isNaN(day)) return null;
-
-  let year = new Date().getFullYear();
-  return new Date(year, month, day, 12, 0, 0);
-}
-
-function formatCleanDateStr(dateObj) {
-  if (!dateObj) return "";
-  let day = dateObj.getDate();
-  let monthShort = monthNames[dateObj.getMonth()];
-  return `${day}-${monthShort}`;
-}
-
-// Helper Function: Dynamic Header Search for exact Employee Information mapping
-function findValueByColumnHeader(headerRow, dataRow, possibleKeywords) {
-  if (!headerRow || !dataRow) return "-";
-  
-  for (let i = 0; i < headerRow.length; i++) {
-    let headerText = cleanString(headerRow[i]);
-    for (let key of possibleKeywords) {
-      if (headerText.includes(key)) {
-        let val = dataRow[i] ? String(dataRow[i]).trim() : "";
-        if (val) return val;
-      }
-    }
-  }
-  return "-";
-}
-
-function verifyUserAndLogin() {
-  const inputEmpId = cleanString(document.getElementById("loginEmpId").value);
-  const inputEmpName = cleanString(document.getElementById("loginEmpName").value);
-
-  if(!inputEmpId || !inputEmpName) {
-    alert("Kripya Emp ID aur Employee Name dono enter karein!");
-    return;
-  }
-
-  if(allSheetsData.length === 0){
-    alert("Data abhi load ho raha hai, kripya Refresh Data par click karein.");
-    return;
-  }
-
-  currentMatchedRow = null;
-  currentHeaderRow = null;
-
-  for(let s = 0; s < allSheetsData.length; s++) {
-    let sheetRows = allSheetsData[s];
-
-    // Find Header Row dynamically
-    let hRow = null;
-    for(let r = 0; r < Math.min(5, sheetRows.length); r++) {
-      let row = sheetRows[r];
-      if(!row) continue;
-      if(row.some(c => cleanString(c).includes("emp") || cleanString(c).includes("name"))) {
-        hRow = row;
-        break;
-      }
-    }
-
-    // Search user row across all cells (Fuzzy / Column-agnostic search)
-    for(let i = 0; i < sheetRows.length; i++) {
-      let row = sheetRows[i];
-      if(!row) continue;
-
-      let rowJoined = row.map(cell => cleanString(cell)).join(" | ");
-
-      if(rowJoined.includes(inputEmpId) && rowJoined.includes(inputEmpName)) {
-        currentMatchedRow = row;
-        currentHeaderRow = hRow || sheetRows[0];
-        break;
-      }
-    }
-
-    if(currentMatchedRow) break;
-  }
-
-  if(!currentMatchedRow) {
-    alert("Invalid Credentials! User ID (Emp ID) ya Password (Name) nahi mila.");
-    return;
-  }
-
-  // Display Profile Details using Dynamic Header Mapping
-  document.getElementById("dispEmpId").textContent = findValueByColumnHeader(currentHeaderRow, currentMatchedRow, ["emp id", "empid", "user id", "code"]);
-  document.getElementById("dispEmpName").textContent = findValueByColumnHeader(currentHeaderRow, currentMatchedRow, ["emp name", "employee name", "name"]);
-  document.getElementById("dispFatherName").textContent = findValueByColumnHeader(currentHeaderRow, currentMatchedRow, ["father", "father name", "father's name"]);
-  document.getElementById("dispDept").textContent = findValueByColumnHeader(currentHeaderRow, currentMatchedRow, ["dept", "department"]);
-  document.getElementById("dispDesig").textContent = findValueByColumnHeader(currentHeaderRow, currentMatchedRow, ["designation", "desig", "role"]);
-  document.getElementById("dispDoj").textContent = findValueByColumnHeader(currentHeaderRow, currentMatchedRow, ["doj", "date of joining", "joining date"]);
-  document.getElementById("dispStatus").textContent = findValueByColumnHeader(currentHeaderRow, currentMatchedRow, ["status", "emp status"]);
-  document.getElementById("dispVendor").textContent = findValueByColumnHeader(currentHeaderRow, currentMatchedRow, ["vendor", "vendor name"]);
-
-  // Scan date headers
-  dateColumnsInfo = [];
-  for(let col = 0; col < currentMatchedRow.length; col++){
-    let dateStr = currentHeaderRow && currentHeaderRow[col] ? currentHeaderRow[col].trim() : "";
-    if(!dateStr) continue;
-
-    let lowerDate = dateStr.toLowerCase();
-    if(lowerDate.includes("present") || lowerDate.includes("total") || lowerDate.includes("night") || lowerDate.includes("absent") || lowerDate.includes("leave") || lowerDate.includes("name") || lowerDate.includes("emp") || lowerDate.includes("father") || lowerDate.includes("dept") || lowerDate.includes("vendor") || lowerDate.includes("status")) {
-      continue;
-    }
-
-    let parsedDate = parseSheetDate(dateStr);
-    if(parsedDate) {
-      dateColumnsInfo.push({
-        colIndex: col,
-        dateObj: parsedDate,
-        cleanDateStr: formatCleanDateStr(parsedDate)
       });
     }
-  }
 
-  buildMonthCycleDropdown();
+    function renderHRMSTable(rows) {
+      const tableHead = document.getElementById('tableHead');
+      const tableBody = document.getElementById('tableBody');
+      const statTotal = document.getElementById('statTotal');
+      const statCols = document.getElementById('statCols');
 
-  document.getElementById("offrollViewLogin").style.display = "none";
-  document.getElementById("offrollViewPrivate").classList.add("show");
-}
+      tableHead.innerHTML = '';
+      tableBody.innerHTML = '';
 
-function buildMonthCycleDropdown() {
-  let selectEl = document.getElementById("monthCycleSelect");
-  selectEl.innerHTML = "";
-
-  if(dateColumnsInfo.length === 0) return;
-
-  let cyclesMap = {};
-
-  dateColumnsInfo.forEach(item => {
-    let d = item.dateObj;
-    let day = d.getDate();
-    let month = d.getMonth();
-    let year = d.getFullYear();
-
-    let cycleMonth, cycleYear;
-    if(day >= 26) {
-      cycleMonth = (month + 1) % 12;
-      cycleYear = month === 11 ? year + 1 : year;
-    } else {
-      cycleMonth = month;
-      cycleYear = year;
-    }
-
-    let cycleKey = `${cycleYear}-${cycleMonth}`;
-    if(!cyclesMap[cycleKey]) {
-      let prevMonth = (cycleMonth === 0) ? 11 : cycleMonth - 1;
-      let label = `26 ${monthNames[prevMonth]} - 25 ${monthNames[cycleMonth]}`;
-      cyclesMap[cycleKey] = {
-        key: cycleKey,
-        label: label,
-        targetMonth: cycleMonth,
-        targetYear: cycleYear
-      };
-    }
-  });
-
-  let keys = Object.keys(cyclesMap);
-  keys.forEach(k => {
-    let opt = document.createElement("option");
-    opt.value = cyclesMap[k].key;
-    opt.textContent = cyclesMap[k].label;
-    selectEl.appendChild(opt);
-  });
-
-  if(keys.length > 0) {
-    selectEl.value = keys[keys.length - 1];
-  }
-
-  renderSelectedMonthAttendance();
-}
-
-function renderSelectedMonthAttendance() {
-  let selectedKey = document.getElementById("monthCycleSelect").value;
-  if(!selectedKey || !currentMatchedRow) return;
-
-  let [targetYear, targetMonth] = selectedKey.split("-").map(Number);
-
-  let tbodyHtml = "";
-  let totalDays = 0, pCount = 0, nCount = 0, lCount = 0, hdCount = 0, aCount = 0;
-  
-  const today = new Date();
-  today.setHours(23, 59, 59, 999);
-
-  dateColumnsInfo.forEach(item => {
-    let d = item.dateObj;
-    let day = d.getDate();
-    let month = d.getMonth();
-    let year = d.getFullYear();
-
-    let itemCycleMonth, itemCycleYear;
-    if(day >= 26) {
-      itemCycleMonth = (month + 1) % 12;
-      itemCycleYear = month === 11 ? year + 1 : year;
-    } else {
-      itemCycleMonth = month;
-      itemCycleYear = year;
-    }
-
-    if(itemCycleMonth === targetMonth && itemCycleYear === targetYear) {
-      if(d > today) return;
-
-      let statusVal = currentMatchedRow[item.colIndex] ? String(currentMatchedRow[item.colIndex]).trim() : "";
-      let upperStatus = statusVal.toUpperCase();
-
-      if(!statusVal) {
-        upperStatus = "A";
-        statusVal = "A";
+      if (!rows || rows.length === 0) {
+        statTotal.textContent = '0';
+        statCols.textContent = '0';
+        tableBody.innerHTML = `<tr><td class="p-8 text-center text-slate-400 font-normal">No employee data found in this sheet.</td></tr>`;
+        return;
       }
 
-      totalDays++;
-      let statusClass = "";
+      const headers = rows[0];
+      statCols.textContent = headers.length;
+      statTotal.textContent = rows.length - 1;
 
-      if(upperStatus === "P") { pCount++; statusClass = "status-P"; }
-      else if(upperStatus === "N") { nCount++; statusClass = "status-N"; }
-      else if(upperStatus === "L") { lCount++; statusClass = "status-L"; }
-      else if(upperStatus === "HD") { hdCount++; statusClass = "status-HD"; }
-      else if(upperStatus === "WO") { statusClass = "status-WO"; }
-      else if(upperStatus === "A") { aCount++; statusClass = "status-A"; }
+      headers.forEach((header, idx) => {
+        const th = document.createElement('th');
+        th.className = "px-4 py-3 border-b border-slate-200/80 whitespace-nowrap font-bold text-slate-700 text-left";
+        th.textContent = header || `Col ${idx + 1}`;
+        tableHead.appendChild(th);
+      });
 
-      tbodyHtml += `<tr>
-        <td><b>${item.cleanDateStr}</b></td>
-        <td class="${statusClass}">${statusVal}</td>
-      </tr>`;
+      for (let i = 1; i < rows.length; i++) {
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-slate-50/80 transition border-b border-slate-100";
+
+        rows[i].forEach((cellValue) => {
+          const td = document.createElement('td');
+          const val = (cellValue || '').trim();
+
+          // Checking if value is numeric (like Aadhar or Phone number)
+          const isNumeric = /^\d+$/.test(val);
+
+          if (isNumeric) {
+            // Using Monospace font for exact alignment of numbers
+            td.className = "px-4 py-3 whitespace-nowrap text-slate-700 font-mono tracking-wide text-left";
+          } else {
+            td.className = "px-4 py-3 whitespace-nowrap text-slate-600 text-left";
+          }
+
+          if (val.toLowerCase() === 'selected' || val.toLowerCase() === 'select') {
+            td.innerHTML = `<span class="px-2.5 py-1 bg-emerald-100 text-emerald-700 font-semibold text-[10px] rounded-full uppercase tracking-wider">Selected</span>`;
+          } else if (val.toLowerCase() === 'rejected' || val.toLowerCase() === 'reject') {
+            td.innerHTML = `<span class="px-2.5 py-1 bg-rose-100 text-rose-700 font-semibold text-[10px] rounded-full uppercase tracking-wider">Rejected</span>`;
+          } else if (val.toLowerCase() === 'pending') {
+            td.innerHTML = `<span class="px-2.5 py-1 bg-amber-100 text-amber-700 font-semibold text-[10px] rounded-full uppercase tracking-wider">Pending</span>`;
+          } else {
+            td.textContent = val || '-';
+          }
+
+          tr.appendChild(td);
+        });
+
+        tableBody.appendChild(tr);
+      }
+
+      document.getElementById('filteredCount').textContent = `Showing all ${rows.length - 1} entries`;
     }
-  });
 
-  document.getElementById("attendanceTbody").innerHTML = tbodyHtml;
-  document.getElementById("kpiTotal").textContent = totalDays;
-  document.getElementById("kpiPresent").textContent = pCount;
-  document.getElementById("kpiNight").textContent = nCount;
-  document.getElementById("kpiLeave").textContent = lCount;
-  document.getElementById("kpiHalfDay").textContent = hdCount;
-  document.getElementById("kpiAbsent").textContent = aCount;
-}
+    function filterTable() {
+      const query = document.getElementById('searchInput').value.toLowerCase();
+      const rows = document.querySelectorAll('#tableBody tr');
+      let visibleCount = 0;
 
-function offrollViewLogout(){
-  document.getElementById("offrollViewLogin").style.display = "block";
-  document.getElementById("offrollViewPrivate").classList.remove("show");
-  document.getElementById("loginEmpId").value = "";
-  document.getElementById("loginEmpName").value = "";
-}
-</script>
+      rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        if (text.includes(query)) {
+          row.style.display = '';
+          visibleCount++;
+        } else {
+          row.style.display = 'none';
+        }
+      });
 
+      document.getElementById('filteredCount').textContent = `Showing ${visibleCount} entries`;
+    }
+
+    loadSheetData();
+  </script>
 </body>
 </html>
