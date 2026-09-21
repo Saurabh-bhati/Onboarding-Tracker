@@ -14,34 +14,16 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 
   <style>
-    body {
-      font-family: 'Inter', sans-serif;
-    }
-    .custom-scrollbar::-webkit-scrollbar {
-      height: 8px;
-      width: 8px;
-    }
-    .custom-scrollbar::-webkit-scrollbar-track {
-      background: #f1f5f9;
-    }
-    .custom-scrollbar::-webkit-scrollbar-thumb {
-      background: #94a3b8;
-      border-radius: 4px;
-    }
-    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-      background: #64748b;
-    }
-    /* Monospace strict alignment for Emp ID, Aadhaar & Mobile Numbers */
+    body { font-family: 'Inter', sans-serif; }
+    .custom-scrollbar::-webkit-scrollbar { height: 8px; width: 8px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #64748b; }
     .mono-number {
       font-family: 'JetBrains Mono', monospace;
       font-weight: 600;
       letter-spacing: 0.05em;
       font-variant-numeric: tabular-nums;
-    }
-    /* Bold Black text styling */
-    .text-dark-bold {
-      color: #0f172a;
-      font-weight: 700;
     }
   </style>
 </head>
@@ -51,7 +33,6 @@
     <!-- Sidebar -->
     <aside class="w-64 bg-slate-950 text-slate-200 flex flex-col justify-between p-5 shadow-2xl z-20">
       <div>
-        <!-- Logo Header -->
         <div class="flex items-center gap-3 px-2 py-3 mb-6 border-b border-slate-800">
           <div class="bg-blue-600 text-white p-2.5 rounded-xl shadow-lg shadow-blue-600/40">
             <i class="fa-solid fa-users-gear text-xl"></i>
@@ -62,7 +43,6 @@
           </div>
         </div>
 
-        <!-- Navigation Menu -->
         <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider px-3 mb-3">Dashboards</div>
         <nav class="space-y-2">
           <button onclick="switchTab('hr')" id="btnHR" class="w-full text-left flex items-center justify-between p-3 rounded-xl bg-blue-600 text-white font-bold shadow-md shadow-blue-600/30 transition-all duration-200">
@@ -77,7 +57,6 @@
         </nav>
       </div>
 
-      <!-- Sync Status Footer -->
       <div class="p-3.5 bg-slate-900/80 rounded-xl border border-slate-800">
         <div class="flex items-center gap-2 text-xs font-bold text-emerald-400">
           <span class="relative flex h-2.5 w-2.5">
@@ -86,7 +65,7 @@
           </span>
           Live Sync Active
         </div>
-        <p class="text-[11px] text-slate-400 font-medium mt-1">Google Sheets Auto-Connected</p>
+        <p class="text-[11px] text-slate-400 font-medium mt-1">Google Sheets Connected</p>
       </div>
     </aside>
 
@@ -100,20 +79,16 @@
           <p class="text-xs font-semibold text-slate-500 mt-0.5">Real-time onboarding management & employee records</p>
         </div>
 
-        <!-- Header Controls -->
         <div class="flex items-center gap-3">
-          <!-- Global Search Bar -->
           <div class="relative w-72">
             <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
-            <input type="text" id="searchInput" onkeyup="filterTable()" placeholder="Search Name, Aadhaar, Emp ID..." class="w-full pl-9 pr-4 py-2 bg-slate-100 border border-slate-300 rounded-lg text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+            <input type="text" id="searchInput" onkeyup="filterTable()" placeholder="Search Name, ID, Mobile..." class="w-full pl-9 pr-4 py-2 bg-slate-100 border border-slate-300 rounded-lg text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
           </div>
 
-          <!-- Add Employee Manual Button -->
           <button onclick="openAddModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-xs font-extrabold flex items-center gap-2 shadow-sm transition">
             <i class="fa-solid fa-user-plus"></i> Add Employee
           </button>
 
-          <!-- Refresh Data Button -->
           <button onclick="loadSheetData()" class="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2 shadow-sm transition">
             <i class="fa-solid fa-rotate-right"></i> Sync Data
           </button>
@@ -165,7 +140,7 @@
         <!-- Table Container Card -->
         <div class="bg-white rounded-2xl shadow-sm border border-slate-300 flex-1 flex flex-col overflow-hidden">
           
-          <!-- Table Bar with Google Sheet Style Filter -->
+          <!-- Table Bar with Heading-based Filter -->
           <div class="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
             <div class="flex items-center gap-3">
               <i class="fa-solid fa-folder-open text-blue-600 text-base"></i>
@@ -173,12 +148,12 @@
             </div>
             
             <div class="flex items-center gap-3">
-              <!-- Excel / Sheet Filter Option -->
+              <!-- Heading Filter Dropdown -->
               <div class="flex items-center gap-2">
                 <i class="fa-solid fa-filter text-slate-500 text-xs"></i>
-                <label for="columnFilter" class="text-xs font-bold text-slate-700">Filter View:</label>
-                <select id="columnFilter" onchange="applyColumnFilter()" class="bg-white border border-slate-300 text-slate-900 text-xs rounded-lg px-3 py-1.5 font-bold focus:outline-none focus:ring-2 focus:ring-blue-500">
-                  <option value="ALL">Show All Records</option>
+                <label for="columnFilter" class="text-xs font-bold text-slate-700">Filter By Column:</label>
+                <select id="columnFilter" onchange="filterTableByColumn()" class="bg-white border border-slate-300 text-slate-900 text-xs rounded-lg px-3 py-1.5 font-bold focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  <option value="ALL">All Columns</option>
                 </select>
               </div>
 
@@ -208,44 +183,23 @@
     </main>
   </div>
 
-  <!-- Manual Add Employee Modal -->
+  <!-- Manual Onboard / Edit Employee Dynamic Modal -->
   <div id="addModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden border border-slate-300">
-      <div class="bg-slate-950 text-white px-6 py-4 flex justify-between items-center">
-        <h3 class="font-extrabold text-sm"><i class="fa-solid fa-user-plus text-emerald-400 mr-2"></i> Onboard New Employee</h3>
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-xl overflow-hidden border border-slate-300 flex flex-col max-h-[90vh]">
+      <div class="bg-slate-950 text-white px-6 py-4 flex justify-between items-center shrink-0">
+        <h3 id="modalTitle" class="font-extrabold text-sm"><i class="fa-solid fa-user-plus text-emerald-400 mr-2"></i> Onboard New Employee</h3>
         <button onclick="closeAddModal()" class="text-slate-400 hover:text-white text-lg font-bold">&times;</button>
       </div>
 
-      <form id="addEmployeeForm" onsubmit="handleManualAdd(event)" class="p-6 space-y-4">
-        <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1">Employee Full Name *</label>
-          <input type="text" id="manualName" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-bold focus:ring-2 focus:ring-blue-500 focus:outline-none">
+      <!-- Dynamic Inputs Form -->
+      <form id="addEmployeeForm" onsubmit="handleFormSubmit(event)" class="p-6 overflow-y-auto space-y-4 custom-scrollbar flex-1">
+        <div id="dynamicFormInputs" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- JS will dynamically populate inputs based on sheet headings -->
         </div>
 
-        <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1">Emp ID *</label>
-          <input type="text" id="manualEmpId" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-bold mono-number focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="EMP1024">
-        </div>
-
-        <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1">CDT.AADHAR NUMBER * (Strict Duplicate Check)</label>
-          <input type="text" id="manualAadhaar" required maxlength="12" pattern="\d{12}" placeholder="12 Digit Aadhaar Number" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-bold mono-number focus:ring-2 focus:ring-blue-500 focus:outline-none">
-          <p class="text-[10px] text-slate-500 font-semibold mt-1">Note: Duplicate Aadhaar entry will be automatically RESTRICTED.</p>
-        </div>
-
-        <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1">Mobile Number *</label>
-          <input type="text" id="manualMobile" required maxlength="10" pattern="\d{10}" placeholder="10 Digit Mobile Number" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-bold mono-number focus:ring-2 focus:ring-blue-500 focus:outline-none">
-        </div>
-
-        <div>
-          <label class="block text-xs font-bold text-slate-700 mb-1">Designation / Role</label>
-          <input type="text" id="manualRole" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-bold focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="e.g. Associate">
-        </div>
-
-        <div class="flex justify-end gap-3 pt-3 border-t border-slate-200">
+        <div class="flex justify-end gap-3 pt-4 border-t border-slate-200 shrink-0">
           <button type="button" onclick="closeAddModal()" class="px-4 py-2 bg-slate-200 text-slate-800 font-bold rounded-lg text-xs hover:bg-slate-300 transition">Cancel</button>
-          <button type="submit" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold rounded-lg text-xs transition shadow-sm">Onboard Employee</button>
+          <button type="submit" id="modalSubmitBtn" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold rounded-lg text-xs transition shadow-sm">Save Employee</button>
         </div>
       </form>
     </div>
@@ -257,10 +211,13 @@
       ops: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR6DAT9uKgT8hruMlMEhJZE2X0O2Rm0g1YqkrkOXv0KSGkwdFqzAK5jRdxpDlvS_xQmwsf5EVTqC3Z-/pub?gid=0&single=true&output=csv'
     };
 
+    // Columns to strictly remove
+    const excludedColumns = ["selection remarks", "shift", "status"];
+
     let activeTab = 'hr';
     let globalHeaders = [];
     let globalTableRows = [];
-    let manualEntries = { hr: [], ops: [] };
+    let editingIndex = -1; // -1 means adding new, >=0 means editing existing
 
     function switchTab(tab) {
       activeTab = tab;
@@ -311,33 +268,31 @@
     function processSheetData(rawData) {
       if (!rawData || rawData.length === 0) return;
 
-      let headers = rawData[0].map(h => (h || '').trim());
+      let originalHeaders = rawData[0].map(h => (h || '').trim());
       
-      // Remove last column if it is "Status"
-      const statusIdx = headers.findIndex(h => h.toLowerCase() === 'status');
-      if (statusIdx !== -1) {
-        headers.splice(statusIdx, 1);
-      }
+      // Filter out unwanted columns
+      let validIndices = [];
+      let headers = [];
+
+      originalHeaders.forEach((h, idx) => {
+        if (!excludedColumns.includes(h.toLowerCase())) {
+          validIndices.push(idx);
+          headers.push(h);
+        }
+      });
 
       globalHeaders = headers;
       
       let rows = [];
       for (let i = 1; i < rawData.length; i++) {
-        let row = rawData[i].map(cell => (cell || '').replace(/\s+/g, ' ').trim());
-        if (statusIdx !== -1 && row.length > statusIdx) {
-          row.splice(statusIdx, 1);
-        }
-        rows.push(row);
-      }
-
-      // Add manually added entries for current tab
-      if (manualEntries[activeTab] && manualEntries[activeTab].length > 0) {
-        rows = [...manualEntries[activeTab], ...rows];
+        let fullRow = rawData[i];
+        let filteredRow = validIndices.map(idx => (fullRow[idx] || '').replace(/\s+/g, ' ').trim());
+        rows.push(filteredRow);
       }
 
       globalTableRows = rows;
-      populateColumnFilter(rows, headers);
-      renderHRMSTable(rows, headers);
+      populateHeadingFilter(headers);
+      renderHRMSTable(globalTableRows, globalHeaders);
     }
 
     function renderHRMSTable(rows, headers) {
@@ -352,6 +307,7 @@
       statCols.textContent = headers.length;
       statTotal.textContent = rows.length;
 
+      // Render Headings
       headers.forEach((header) => {
         const th = document.createElement('th');
         th.className = "px-4 py-3 border-b border-slate-300 font-extrabold text-slate-900 text-left whitespace-nowrap bg-slate-200";
@@ -359,16 +315,31 @@
         tableHead.appendChild(th);
       });
 
-      rows.forEach(row => {
+      // Actions Column Header
+      const actionTh = document.createElement('th');
+      actionTh.className = "px-4 py-3 border-b border-slate-300 font-extrabold text-slate-900 text-center whitespace-nowrap bg-slate-200";
+      actionTh.textContent = "ACTIONS";
+      tableHead.appendChild(actionTh);
+
+      // Identify SN column index if available
+      const snIdx = headers.findIndex(h => h.toLowerCase() === 'sn' || h.toLowerCase().includes('serial'));
+
+      // Render Rows with Auto-Numbering
+      rows.forEach((row, rowIndex) => {
         const tr = document.createElement('tr');
         tr.className = "hover:bg-slate-200/60 transition border-b border-slate-200 text-slate-900 font-bold";
 
         row.forEach((cellVal, colIdx) => {
           const td = document.createElement('td');
-          const val = (cellVal || '').trim();
+          let val = (cellVal || '').trim();
           const colName = (headers[colIdx] || '').toLowerCase();
 
-          // Monospace & Alignment fix for Aadhaar, Mobile, and Emp ID
+          // Auto-update Serial Number according to row index
+          if (colIdx === snIdx || colName === 'sn') {
+            val = (rowIndex + 1).toString();
+            row[colIdx] = val; // Sync in memory
+          }
+
           const isNumberOrId = /^\d+$/.test(val) || colName.includes('aadhar') || colName.includes('mobile') || colName.includes('emp');
 
           if (isNumberOrId) {
@@ -381,57 +352,61 @@
           tr.appendChild(td);
         });
 
+        // Edit & Delete Action Buttons
+        const actionTd = document.createElement('td');
+        actionTd.className = "px-4 py-3.5 whitespace-nowrap text-center space-x-2";
+        actionTd.innerHTML = `
+          <button onclick="editEmployee(${rowIndex})" class="p-1.5 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg text-xs transition" title="Edit Employee">
+            <i class="fa-solid fa-pen-to-square"></i>
+          </button>
+          <button onclick="deleteEmployee(${rowIndex})" class="p-1.5 bg-rose-100 hover:bg-rose-200 text-rose-700 rounded-lg text-xs transition" title="Delete Employee">
+            <i class="fa-solid fa-trash"></i>
+          </button>
+        `;
+        tr.appendChild(actionTd);
+
         tableBody.appendChild(tr);
       });
 
       document.getElementById('filteredCount').textContent = `Showing all ${rows.length} entries`;
     }
 
-    // Google Sheets Style Column Filter
-    function populateColumnFilter(rows, headers) {
+    // Populate Filter dropdown with Tracker Headings
+    function populateHeadingFilter(headers) {
       const filterSelect = document.getElementById('columnFilter');
-      filterSelect.innerHTML = '<option value="ALL">Show All Records</option>';
+      filterSelect.innerHTML = '<option value="ALL">All Headings</option>';
 
-      // Find major category/role or first string column for options
-      let categories = new Set();
-      rows.forEach(row => {
-        row.forEach(val => {
-          if (val && val.length > 2 && val.length < 25 && !/^\d+$/.test(val)) {
-            categories.add(val);
-          }
-        });
-      });
-
-      Array.from(categories).slice(0, 15).forEach(cat => {
+      headers.forEach((h, idx) => {
         const opt = document.createElement('option');
-        opt.value = cat.toLowerCase();
-        opt.textContent = cat;
+        opt.value = idx;
+        opt.textContent = h;
         filterSelect.appendChild(opt);
       });
     }
 
-    function applyColumnFilter() {
-      const selected = document.getElementById('columnFilter').value;
-      if (selected === 'ALL') {
-        renderHRMSTable(globalTableRows, globalHeaders);
-        return;
-      }
-
-      const filtered = globalTableRows.filter(row => {
-        return row.some(cell => cell.toLowerCase() === selected);
-      });
-
-      renderHRMSTable(filtered, globalHeaders);
+    function filterTableByColumn() {
+      document.getElementById('searchInput').value = '';
+      renderHRMSTable(globalTableRows, globalHeaders);
     }
 
     function filterTable() {
       const query = document.getElementById('searchInput').value.toLowerCase();
+      const colFilterVal = document.getElementById('columnFilter').value;
       const rows = document.querySelectorAll('#tableBody tr');
       let count = 0;
 
       rows.forEach(row => {
-        const text = row.textContent.toLowerCase();
-        if (text.includes(query)) {
+        let isMatch = false;
+
+        if (colFilterVal === 'ALL') {
+          isMatch = row.textContent.toLowerCase().includes(query);
+        } else {
+          const colIndex = parseInt(colFilterVal);
+          const cellText = row.children[colIndex] ? row.children[colIndex].textContent.toLowerCase() : '';
+          isMatch = cellText.includes(query);
+        }
+
+        if (isMatch) {
           row.style.display = '';
           count++;
         } else {
@@ -442,8 +417,39 @@
       document.getElementById('filteredCount').textContent = `Showing ${count} entries`;
     }
 
-    // Manual Add Modal Controls
-    function openAddModal() {
+    // Open Modal for New Employee or Editing
+    function openAddModal(isEdit = false) {
+      editingIndex = isEdit ? editingIndex : -1;
+      const container = document.getElementById('dynamicFormInputs');
+      container.innerHTML = '';
+
+      document.getElementById('modalTitle').innerHTML = isEdit 
+        ? `<i class="fa-solid fa-pen-to-square text-blue-400 mr-2"></i> Edit Employee Record`
+        : `<i class="fa-solid fa-user-plus text-emerald-400 mr-2"></i> Onboard New Employee`;
+
+      document.getElementById('modalSubmitBtn').textContent = isEdit ? 'Update Employee' : 'Onboard Employee';
+
+      const existingData = isEdit ? globalTableRows[editingIndex] : [];
+
+      globalHeaders.forEach((h, idx) => {
+        const hLower = h.toLowerCase();
+        if (hLower === 'sn' || hLower.includes('serial')) return; // Skip SN in form
+
+        const div = document.createElement('div');
+        const val = existingData[idx] || '';
+
+        const isAadhaar = hLower.includes('aadhar');
+        const isMobile = hLower.includes('mobile') || hLower.includes('phone');
+
+        div.innerHTML = `
+          <label class="block text-xs font-bold text-slate-700 mb-1">${h} ${isAadhaar ? '*' : ''}</label>
+          <input type="text" data-colindex="${idx}" value="${val}" ${isAadhaar ? 'required' : ''} 
+            placeholder="Enter ${h}" 
+            class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-bold text-slate-900 ${isAadhaar || isMobile ? 'mono-number' : ''} focus:ring-2 focus:ring-blue-500 focus:outline-none">
+        `;
+        container.appendChild(div);
+      });
+
       document.getElementById('addModal').classList.remove('hidden');
       document.getElementById('addModal').classList.add('flex');
     }
@@ -452,48 +458,65 @@
       document.getElementById('addModal').classList.add('hidden');
       document.getElementById('addModal').classList.remove('flex');
       document.getElementById('addEmployeeForm').reset();
+      editingIndex = -1;
     }
 
-    // Strict Duplicate Aadhaar Validation Check
-    function handleManualAdd(e) {
+    // Save or Edit Employee Handler
+    function handleFormSubmit(e) {
       e.preventDefault();
 
-      const name = document.getElementById('manualName').value.trim();
-      const empId = document.getElementById('manualEmpId').value.trim();
-      const aadhaar = document.getElementById('manualAadhaar').value.trim();
-      const mobile = document.getElementById('manualMobile').value.trim();
-      const role = document.getElementById('manualRole').value.trim();
+      const inputs = document.querySelectorAll('#dynamicFormInputs input');
+      let newRow = new Array(globalHeaders.length).fill('');
 
-      // Search if Aadhaar already exists in global table rows
-      const isDuplicate = globalTableRows.some(row => {
-        return row.some(cell => cell.replace(/\s+/g, '') === aadhaar);
+      let aadhaarValue = '';
+      inputs.forEach(input => {
+        const idx = parseInt(input.getAttribute('data-colindex'));
+        const val = input.value.trim();
+        newRow[idx] = val;
+
+        if (globalHeaders[idx].toLowerCase().includes('aadhar')) {
+          aadhaarValue = val.replace(/\s+/g, '');
+        }
       });
 
-      if (isDuplicate) {
-        closeAddModal();
-        showAlert(` RESTRICTED: Duplicate Entry! Employee with Aadhaar Number (${aadhaar}) is already onboarded in system. Data NOT added.`, 'error');
-        return;
+      // Duplicate Aadhaar Check
+      if (aadhaarValue) {
+        const duplicateIndex = globalTableRows.findIndex((row, rIdx) => {
+          if (editingIndex >= 0 && rIdx === editingIndex) return false; // Skip checking self while editing
+          return row.some(cell => cell.replace(/\s+/g, '') === aadhaarValue);
+        });
+
+        if (duplicateIndex !== -1) {
+          showAlert(` RESTRICTED: Duplicate Entry! Aadhaar (${aadhaarValue}) already exists in system.`, 'error');
+          return;
+        }
       }
 
-      // Create new row array matching existing columns length
-      let newRow = new Array(globalHeaders.length).fill('-');
-      
-      // Smart map fields based on headers
-      globalHeaders.forEach((h, idx) => {
-        const hLower = h.toLowerCase();
-        if (hLower.includes('name')) newRow[idx] = name;
-        else if (hLower.includes('emp')) newRow[idx] = empId;
-        else if (hLower.includes('aadhar')) newRow[idx] = aadhaar;
-        else if (hLower.includes('mobile') || hLower.includes('phone')) newRow[idx] = mobile;
-        else if (hLower.includes('designation') || hLower.includes('role')) newRow[idx] = role;
-      });
-
-      manualEntries[activeTab].unshift(newRow);
-      globalTableRows.unshift(newRow);
+      if (editingIndex >= 0) {
+        // Edit existing row
+        globalTableRows[editingIndex] = newRow;
+        showAlert(` SUCCESS: Employee record updated successfully!`, 'success');
+      } else {
+        // Add new row at bottom
+        globalTableRows.push(newRow);
+        showAlert(` SUCCESS: New employee added at position #${globalTableRows.length}!`, 'success');
+      }
 
       closeAddModal();
       renderHRMSTable(globalTableRows, globalHeaders);
-      showAlert(` SUCCESS: Employee ${name} onboarded successfully!`, 'success');
+    }
+
+    function editEmployee(index) {
+      editingIndex = index;
+      openAddModal(true);
+    }
+
+    function deleteEmployee(index) {
+      if (confirm(`Are you sure you want to delete Employee #${index + 1}?`)) {
+        globalTableRows.splice(index, 1);
+        renderHRMSTable(globalTableRows, globalHeaders);
+        showAlert(` Employee #${index + 1} deleted and serial numbers re-adjusted!`, 'success');
+      }
     }
 
     function showAlert(msg, type) {
