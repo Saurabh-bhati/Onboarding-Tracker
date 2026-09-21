@@ -63,9 +63,9 @@
             <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
             <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
           </span>
-          Live Sync Active
+          Hybrid Sync & Local Persistence
         </div>
-        <p class="text-[11px] text-slate-400 font-medium mt-1">Google Sheets Connected</p>
+        <p class="text-[11px] text-slate-400 font-medium mt-1">Google Sheets + Local Saved State</p>
       </div>
     </aside>
 
@@ -82,15 +82,15 @@
         <div class="flex items-center gap-3">
           <div class="relative w-72">
             <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
-            <input type="text" id="searchInput" onkeyup="filterTable()" placeholder="Search Name, ID, Mobile..." class="w-full pl-9 pr-4 py-2 bg-slate-100 border border-slate-300 rounded-lg text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+            <input type="text" id="searchInput" oninput="filterTable()" placeholder="Search Name, ID, Mobile..." class="w-full pl-9 pr-4 py-2 bg-slate-100 border border-slate-300 rounded-lg text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
           </div>
 
           <button onclick="openAddModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-xs font-extrabold flex items-center gap-2 shadow-sm transition">
             <i class="fa-solid fa-user-plus"></i> Add Employee
           </button>
 
-          <button onclick="loadSheetData()" class="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2 shadow-sm transition">
-            <i class="fa-solid fa-rotate-right"></i> Sync Data
+          <button onclick="loadSheetData(true)" class="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2 shadow-sm transition">
+            <i class="fa-solid fa-rotate-right"></i> Refresh Sheet Data
           </button>
         </div>
       </header>
@@ -152,8 +152,8 @@
               <div class="flex items-center gap-2">
                 <i class="fa-solid fa-filter text-slate-500 text-xs"></i>
                 <label for="columnFilter" class="text-xs font-bold text-slate-700">Filter By Column:</label>
-                <select id="columnFilter" onchange="filterTableByColumn()" class="bg-white border border-slate-300 text-slate-900 text-xs rounded-lg px-3 py-1.5 font-bold focus:outline-none focus:ring-2 focus:ring-blue-500">
-                  <option value="ALL">All Columns</option>
+                <select id="columnFilter" onchange="filterTable()" class="bg-white border border-slate-300 text-slate-900 text-xs rounded-lg px-3 py-1.5 font-bold focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  <option value="ALL">All Headings</option>
                 </select>
               </div>
 
@@ -211,13 +211,16 @@
       ops: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR6DAT9uKgT8hruMlMEhJZE2X0O2Rm0g1YqkrkOXv0KSGkwdFqzAK5jRdxpDlvS_xQmwsf5EVTqC3Z-/pub?gid=0&single=true&output=csv'
     };
 
-    // Columns to strictly remove
     const excludedColumns = ["selection remarks", "shift", "status"];
 
     let activeTab = 'hr';
     let globalHeaders = [];
     let globalTableRows = [];
-    let editingIndex = -1; // -1 means adding new, >=0 means editing existing
+    let editingIndex = -1;
+
+    function getStorageKey(key) {
+      return `hrms_data_${activeTab}_${key}`;
+    }
 
     function switchTab(tab) {
       activeTab = tab;
@@ -240,7 +243,7 @@
       loadSheetData();
     }
 
-    function loadSheetData() {
+    function loadSheetData(forceRefresh = false) {
       const loader = document.getElementById('loader');
       const tableWrapper = document.getElementById('tableWrapper');
       
@@ -254,23 +257,21 @@
         header: false,
         skipEmptyLines: 'greedy',
         complete: function(results) {
-          processSheetData(results.data);
+          processSheetData(results.data, forceRefresh);
           loader.classList.add('hidden');
           tableWrapper.classList.remove('hidden');
         },
         error: function(err) {
           showAlert('Failed to load Google Sheet data.', 'error');
-          console.error(err);
         }
       });
     }
 
-    function processSheetData(rawData) {
+    function processSheetData(rawData, forceRefresh) {
       if (!rawData || rawData.length === 0) return;
 
       let originalHeaders = rawData[0].map(h => (h || '').trim());
       
-      // Filter out unwanted columns
       let validIndices = [];
       let headers = [];
 
@@ -283,14 +284,46 @@
 
       globalHeaders = headers;
       
-      let rows = [];
+      let sheetRows = [];
       for (let i = 1; i < rawData.length; i++) {
         let fullRow = rawData[i];
         let filteredRow = validIndices.map(idx => (fullRow[idx] || '').replace(/\s+/g, ' ').trim());
-        rows.push(filteredRow);
+        sheetRows.push(filteredRow);
       }
 
-      globalTableRows = rows;
+      // Identify Aadhaar Column Index
+      const aadhaarIdx = globalHeaders.findIndex(h => h.toLowerCase().includes('aadhar'));
+
+      // Persistent Storage Integration logic
+      let localOverrides = JSON.parse(localStorage.getItem(getStorageKey('edits')) || '{}');
+      let localAdded = JSON.parse(localStorage.getItem(getStorageKey('added')) || '[]');
+      let localDeleted = JSON.parse(localStorage.getItem(getStorageKey('deleted')) || '[]');
+
+      let mergedRows = [];
+
+      sheetRows.forEach((sRow, idx) => {
+        let uniqueKey = (aadhaarIdx !== -1 && sRow[aadhaarIdx]) ? sRow[aadhaarIdx].replace(/\s+/g, '') : `row_${idx}`;
+
+        if (localDeleted.includes(uniqueKey)) {
+          return; // Deleted locally
+        }
+
+        if (localOverrides[uniqueKey]) {
+          mergedRows.push(localOverrides[uniqueKey]); // Retain locally edited values
+        } else {
+          mergedRows.push(sRow); // Retain original sheet data
+        }
+      });
+
+      // Append locally added employees that aren't in sheet yet
+      localAdded.forEach(aRow => {
+        let uniqueKey = (aadhaarIdx !== -1 && aRow[aadhaarIdx]) ? aRow[aadhaarIdx].replace(/\s+/g, '') : null;
+        if (uniqueKey && !mergedRows.some(r => r[aadhaarIdx] && r[aadhaarIdx].replace(/\s+/g, '') === uniqueKey)) {
+          mergedRows.push(aRow);
+        }
+      });
+
+      globalTableRows = mergedRows;
       populateHeadingFilter(headers);
       renderHRMSTable(globalTableRows, globalHeaders);
     }
@@ -307,7 +340,6 @@
       statCols.textContent = headers.length;
       statTotal.textContent = rows.length;
 
-      // Render Headings
       headers.forEach((header) => {
         const th = document.createElement('th');
         th.className = "px-4 py-3 border-b border-slate-300 font-extrabold text-slate-900 text-left whitespace-nowrap bg-slate-200";
@@ -315,16 +347,13 @@
         tableHead.appendChild(th);
       });
 
-      // Actions Column Header
       const actionTh = document.createElement('th');
       actionTh.className = "px-4 py-3 border-b border-slate-300 font-extrabold text-slate-900 text-center whitespace-nowrap bg-slate-200";
       actionTh.textContent = "ACTIONS";
       tableHead.appendChild(actionTh);
 
-      // Identify SN column index if available
       const snIdx = headers.findIndex(h => h.toLowerCase() === 'sn' || h.toLowerCase().includes('serial'));
 
-      // Render Rows with Auto-Numbering
       rows.forEach((row, rowIndex) => {
         const tr = document.createElement('tr');
         tr.className = "hover:bg-slate-200/60 transition border-b border-slate-200 text-slate-900 font-bold";
@@ -334,10 +363,9 @@
           let val = (cellVal || '').trim();
           const colName = (headers[colIdx] || '').toLowerCase();
 
-          // Auto-update Serial Number according to row index
           if (colIdx === snIdx || colName === 'sn') {
             val = (rowIndex + 1).toString();
-            row[colIdx] = val; // Sync in memory
+            row[colIdx] = val;
           }
 
           const isNumberOrId = /^\d+$/.test(val) || colName.includes('aadhar') || colName.includes('mobile') || colName.includes('emp');
@@ -352,7 +380,6 @@
           tr.appendChild(td);
         });
 
-        // Edit & Delete Action Buttons
         const actionTd = document.createElement('td');
         actionTd.className = "px-4 py-3.5 whitespace-nowrap text-center space-x-2";
         actionTd.innerHTML = `
@@ -368,12 +395,12 @@
         tableBody.appendChild(tr);
       });
 
-      document.getElementById('filteredCount').textContent = `Showing all ${rows.length} entries`;
+      filterTable();
     }
 
-    // Populate Filter dropdown with Tracker Headings
     function populateHeadingFilter(headers) {
       const filterSelect = document.getElementById('columnFilter');
+      const currentSelected = filterSelect.value;
       filterSelect.innerHTML = '<option value="ALL">All Headings</option>';
 
       headers.forEach((h, idx) => {
@@ -382,15 +409,14 @@
         opt.textContent = h;
         filterSelect.appendChild(opt);
       });
-    }
 
-    function filterTableByColumn() {
-      document.getElementById('searchInput').value = '';
-      renderHRMSTable(globalTableRows, globalHeaders);
+      if (currentSelected !== "") {
+        filterSelect.value = currentSelected;
+      }
     }
 
     function filterTable() {
-      const query = document.getElementById('searchInput').value.toLowerCase();
+      const query = document.getElementById('searchInput').value.toLowerCase().trim();
       const colFilterVal = document.getElementById('columnFilter').value;
       const rows = document.querySelectorAll('#tableBody tr');
       let count = 0;
@@ -402,7 +428,8 @@
           isMatch = row.textContent.toLowerCase().includes(query);
         } else {
           const colIndex = parseInt(colFilterVal);
-          const cellText = row.children[colIndex] ? row.children[colIndex].textContent.toLowerCase() : '';
+          const targetCell = row.children[colIndex];
+          const cellText = targetCell ? targetCell.textContent.toLowerCase() : '';
           isMatch = cellText.includes(query);
         }
 
@@ -417,7 +444,6 @@
       document.getElementById('filteredCount').textContent = `Showing ${count} entries`;
     }
 
-    // Open Modal for New Employee or Editing
     function openAddModal(isEdit = false) {
       editingIndex = isEdit ? editingIndex : -1;
       const container = document.getElementById('dynamicFormInputs');
@@ -433,7 +459,7 @@
 
       globalHeaders.forEach((h, idx) => {
         const hLower = h.toLowerCase();
-        if (hLower === 'sn' || hLower.includes('serial')) return; // Skip SN in form
+        if (hLower === 'sn' || hLower.includes('serial')) return;
 
         const div = document.createElement('div');
         const val = existingData[idx] || '';
@@ -461,7 +487,6 @@
       editingIndex = -1;
     }
 
-    // Save or Edit Employee Handler
     function handleFormSubmit(e) {
       e.preventDefault();
 
@@ -469,37 +494,50 @@
       let newRow = new Array(globalHeaders.length).fill('');
 
       let aadhaarValue = '';
+      let aadhaarIdx = globalHeaders.findIndex(h => h.toLowerCase().includes('aadhar'));
+
       inputs.forEach(input => {
         const idx = parseInt(input.getAttribute('data-colindex'));
         const val = input.value.trim();
         newRow[idx] = val;
 
-        if (globalHeaders[idx].toLowerCase().includes('aadhar')) {
+        if (idx === aadhaarIdx) {
           aadhaarValue = val.replace(/\s+/g, '');
         }
       });
 
-      // Duplicate Aadhaar Check
       if (aadhaarValue) {
         const duplicateIndex = globalTableRows.findIndex((row, rIdx) => {
-          if (editingIndex >= 0 && rIdx === editingIndex) return false; // Skip checking self while editing
-          return row.some(cell => cell.replace(/\s+/g, '') === aadhaarValue);
+          if (editingIndex >= 0 && rIdx === editingIndex) return false;
+          return row[aadhaarIdx] && row[aadhaarIdx].replace(/\s+/g, '') === aadhaarValue;
         });
 
         if (duplicateIndex !== -1) {
-          showAlert(` RESTRICTED: Duplicate Entry! Aadhaar (${aadhaarValue}) already exists in system.`, 'error');
+          showAlert(` RESTRICTED: Duplicate Entry! Aadhaar already exists in system.`, 'error');
           return;
         }
       }
 
+      let key = aadhaarValue || `row_${editingIndex >= 0 ? editingIndex : globalTableRows.length}`;
+
       if (editingIndex >= 0) {
-        // Edit existing row
         globalTableRows[editingIndex] = newRow;
-        showAlert(` SUCCESS: Employee record updated successfully!`, 'success');
+
+        // Save override in localStorage
+        let localOverrides = JSON.parse(localStorage.getItem(getStorageKey('edits')) || '{}');
+        localOverrides[key] = newRow;
+        localStorage.setItem(getStorageKey('edits'), JSON.stringify(localOverrides));
+
+        showAlert(` SUCCESS: Employee record updated & saved locally!`, 'success');
       } else {
-        // Add new row at bottom
         globalTableRows.push(newRow);
-        showAlert(` SUCCESS: New employee added at position #${globalTableRows.length}!`, 'success');
+
+        // Save new addition in localStorage
+        let localAdded = JSON.parse(localStorage.getItem(getStorageKey('added')) || '[]');
+        localAdded.push(newRow);
+        localStorage.setItem(getStorageKey('added'), JSON.stringify(localAdded));
+
+        showAlert(` SUCCESS: New employee added locally!`, 'success');
       }
 
       closeAddModal();
@@ -513,9 +551,18 @@
 
     function deleteEmployee(index) {
       if (confirm(`Are you sure you want to delete Employee #${index + 1}?`)) {
+        let aadhaarIdx = globalHeaders.findIndex(h => h.toLowerCase().includes('aadhar'));
+        let targetRow = globalTableRows[index];
+        let key = (aadhaarIdx !== -1 && targetRow[aadhaarIdx]) ? targetRow[aadhaarIdx].replace(/\s+/g, '') : `row_${index}`;
+
+        // Store deleted state locally
+        let localDeleted = JSON.parse(localStorage.getItem(getStorageKey('deleted')) || '[]');
+        localDeleted.push(key);
+        localStorage.setItem(getStorageKey('deleted'), JSON.stringify(localDeleted));
+
         globalTableRows.splice(index, 1);
         renderHRMSTable(globalTableRows, globalHeaders);
-        showAlert(` Employee #${index + 1} deleted and serial numbers re-adjusted!`, 'success');
+        showAlert(` Employee #${index + 1} deleted!`, 'success');
       }
     }
 
