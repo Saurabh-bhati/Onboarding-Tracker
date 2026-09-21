@@ -8,9 +8,9 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <!-- Google Font Inter -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <!-- PapaParse for CSV Data Parsing -->
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+  <!-- PapaParse for CSV Parsing -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 
   <style>
@@ -30,6 +30,11 @@
     }
     .custom-scrollbar::-webkit-scrollbar-thumb:hover {
       background: #94a3b8;
+    }
+    .mono-number {
+      font-family: 'JetBrains Mono', monospace;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 0.05em;
     }
   </style>
 </head>
@@ -210,7 +215,10 @@
       loader.classList.remove('hidden');
       tableWrapper.classList.add('hidden');
 
-      Papa.parse(sheetCsvUrls[activeTab], {
+      // Unique timestamp to bypass browser caching completely
+      const timestampUrl = sheetCsvUrls[activeTab] + '&_t=' + new Date().getTime();
+
+      Papa.parse(timestampUrl, {
         download: true,
         header: false,
         skipEmptyLines: 'greedy',
@@ -249,8 +257,14 @@
 
       headers.forEach((header, idx) => {
         const th = document.createElement('th');
+        const hText = (header || '').trim();
         th.className = "px-4 py-3 border-b border-slate-200/80 whitespace-nowrap font-bold text-slate-700 text-left";
-        th.textContent = header || `Col ${idx + 1}`;
+        
+        if (hText.toLowerCase().includes('aadhar') || hText.toLowerCase().includes('mobile') || hText.toLowerCase().includes('phone')) {
+          th.className += " text-left pl-6";
+        }
+
+        th.textContent = hText || `Col ${idx + 1}`;
         tableHead.appendChild(th);
       });
 
@@ -258,16 +272,17 @@
         const tr = document.createElement('tr');
         tr.className = "hover:bg-slate-50/80 transition border-b border-slate-100";
 
-        rows[i].forEach((cellValue) => {
+        rows[i].forEach((cellValue, colIndex) => {
           const td = document.createElement('td');
-          const val = (cellValue || '').trim();
+          // Clean spaces completely from starting and ending of cell data
+          let val = (cellValue || '').replace(/\s+/g, ' ').trim();
+          const colName = (headers[colIndex] || '').toLowerCase();
 
-          // Checking if value is numeric (like Aadhar or Phone number)
+          // Checking if column is Aadhar / Mobile / Numeric ID
           const isNumeric = /^\d+$/.test(val);
 
-          if (isNumeric) {
-            // Using Monospace font for exact alignment of numbers
-            td.className = "px-4 py-3 whitespace-nowrap text-slate-700 tracking-wide text-left";
+          if (isNumeric || colName.includes('aadhar') || colName.includes('mobile')) {
+            td.className = "px-4 py-3 whitespace-nowrap text-slate-700 mono-number text-left pl-6";
           } else {
             td.className = "px-4 py-3 whitespace-nowrap text-slate-600 text-left";
           }
