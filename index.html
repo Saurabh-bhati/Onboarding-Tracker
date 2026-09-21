@@ -63,9 +63,9 @@
             <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
             <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
           </span>
-          Live Sheet Synchronization
+          Live Sheet Direct Sync
         </div>
-        <p class="text-[11px] text-slate-400 font-medium mt-1">Google Sheets Primary Source</p>
+        <p class="text-[11px] text-slate-400 font-medium mt-1">Direct Google Sheet Master Integration</p>
       </div>
     </aside>
 
@@ -163,7 +163,7 @@
           <!-- Loading Spinner -->
           <div id="loader" class="flex-1 flex flex-col items-center justify-center p-8">
             <div class="w-10 h-10 border-4 border-blue-600/30 border-t-blue-600 rounded-full animate-spin mb-3"></div>
-            <p class="text-xs font-bold text-slate-600">Syncing employee directory...</p>
+            <p class="text-xs font-bold text-slate-600">Fetching latest Google Sheet data...</p>
           </div>
 
           <!-- Table View Area -->
@@ -237,7 +237,7 @@
       }
 
       document.getElementById('searchInput').value = '';
-      loadSheetData();
+      loadSheetData(false);
     }
 
     function loadSheetData(forceRefresh = false) {
@@ -251,7 +251,9 @@
         localStorage.removeItem(getStorageKey('edits'));
       }
 
-      const timestampUrl = sheetCsvUrls[activeTab] + '&_t=' + new Date().getTime();
+      // Add cache buster parameter to avoid Google Sheets server-side caching
+      const cacheBuster = '&_cb=' + new Date().getTime() + Math.random().toString(36).substring(7);
+      const timestampUrl = sheetCsvUrls[activeTab] + cacheBuster;
 
       Papa.parse(timestampUrl, {
         download: true,
@@ -261,6 +263,10 @@
           processSheetData(results.data, forceRefresh);
           loader.classList.add('hidden');
           tableWrapper.classList.remove('hidden');
+
+          if (forceRefresh) {
+            showAlert(' Google Sheet data refreshed successfully from live sheet!', 'success');
+          }
         },
         error: function(err) {
           showAlert('Failed to load Google Sheet data.', 'error');
@@ -302,7 +308,6 @@
       sheetRows.forEach((sRow, idx) => {
         let uniqueKey = (aadhaarIdx !== -1 && sRow[aadhaarIdx]) ? sRow[aadhaarIdx].replace(/\s+/g, '') : `row_${idx}`;
 
-        // If sheet changed, sheet value will apply automatically.
         if (localOverrides[uniqueKey] && !forceRefresh) {
           mergedRows.push(localOverrides[uniqueKey]);
         } else {
@@ -568,7 +573,7 @@
       document.getElementById('alertBanner').classList.add('hidden');
     }
 
-    loadSheetData();
+    loadSheetData(false);
   </script>
 </body>
 </html>
