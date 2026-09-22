@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PW Offroll HRMS</title>
+  <title>PW Offroll HRMS - Enterprise Portal</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- FontAwesome Icons -->
@@ -25,6 +25,11 @@
 </head>
 <body class="bg-slate-100 text-slate-900 antialiased h-screen overflow-hidden" onclick="closeAllDropdowns(event)">
 
+  <script>
+    // PASTE YOUR GOOGLE APPS SCRIPT WEB APP URL HERE:
+    const API_URL = "YOUR_DEPLOYED_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE";
+  </script>
+
   <div class="flex h-full">
     <!-- Sidebar -->
     <aside class="w-64 bg-slate-950 text-slate-200 flex flex-col justify-between p-5 shadow-2xl z-20">
@@ -41,12 +46,12 @@
 
         <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider px-3 mb-3">Dashboards</div>
         <nav class="space-y-2">
-          <button onclick="switchTab('hr')" id="btnHR" class="w-full text-left flex items-center justify-between p-3 rounded-xl bg-blue-600 text-white font-bold shadow-md transition-all duration-200">
+          <button onclick="switchTab('Warehouse')" id="btnWarehouse" class="w-full text-left flex items-center justify-between p-3 rounded-xl bg-blue-600 text-white font-bold shadow-md transition-all duration-200">
             <span class="flex items-center gap-3"><i class="fa-solid fa-warehouse text-lg"></i> Warehouse Onboarding</span>
             <i class="fa-solid fa-chevron-right text-xs opacity-70"></i>
           </button>
           
-          <button onclick="switchTab('ops')" id="btnOps" class="w-full text-left flex items-center justify-between p-3 rounded-xl hover:bg-slate-900 text-slate-400 hover:text-slate-100 font-bold transition-all duration-200">
+          <button onclick="switchTab('PrintingPress')" id="btnPrinting" class="w-full text-left flex items-center justify-between p-3 rounded-xl hover:bg-slate-900 text-slate-400 hover:text-slate-100 font-bold transition-all duration-200">
             <span class="flex items-center gap-3"><i class="fa-solid fa-print text-lg"></i> Printing Press Onboarding</span>
             <i class="fa-solid fa-chevron-right text-xs opacity-70"></i>
           </button>
@@ -59,9 +64,9 @@
             <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
             <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
           </span>
-          100% Accurate Sync Active
+          100% Live Sheet Sync Active
         </div>
-        <p class="text-[11px] text-slate-400 font-medium mt-1">Direct Stream Engine</p>
+        <p class="text-[11px] text-slate-400 font-medium mt-1">Direct Engine Connection</p>
       </div>
     </aside>
 
@@ -84,8 +89,8 @@
             <i class="fa-solid fa-user-plus"></i> Add Employee
           </button>
 
-          <button onclick="loadSheetData(true)" class="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2 shadow-sm transition">
-            <i class="fa-solid fa-bolt text-amber-400"></i> Force Sync Sheet
+          <button onclick="fetchLiveData()" class="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2 shadow-sm transition">
+            <i class="fa-solid fa-bolt text-amber-400"></i> Force Sync
           </button>
         </div>
       </header>
@@ -120,7 +125,7 @@
             </div>
             <div>
               <p class="text-xs font-bold uppercase text-slate-500 tracking-wider">System Security</p>
-              <h3 class="text-base font-black text-emerald-700 mt-0.5">Duplicate Aadhaar Blocked</h3>
+              <h3 class="text-base font-black text-emerald-700 mt-0.5">Duplicate ID Blocked</h3>
             </div>
           </div>
         </div>
@@ -149,7 +154,7 @@
 
           <div id="loader" class="flex-1 flex flex-col items-center justify-center p-8">
             <div class="w-10 h-10 border-4 border-blue-600/30 border-t-blue-600 rounded-full animate-spin mb-3"></div>
-            <p class="text-xs font-bold text-slate-600">Syncing live data from Google Sheets...</p>
+            <p class="text-xs font-bold text-slate-600">Syncing live data directly from Google Sheet...</p>
           </div>
 
           <div id="tableWrapper" class="flex-1 overflow-auto custom-scrollbar hidden">
@@ -178,7 +183,7 @@
       <form id="addEmployeeForm" onsubmit="handleFormSubmit(event)" class="p-6 overflow-y-auto space-y-4 custom-scrollbar flex-1">
         <div id="dynamicFormInputs" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
 
-        <!-- Validation Error Message inside Modal -->
+        <!-- Error Container -->
         <div id="modalErrorMsg" class="hidden p-3 bg-rose-100 border border-rose-300 text-rose-800 font-bold text-xs rounded-lg flex items-center gap-2">
           <i class="fa-solid fa-triangle-exclamation text-rose-600 text-sm"></i>
           <span id="modalErrorText"></span>
@@ -186,119 +191,68 @@
 
         <div class="flex justify-end gap-3 pt-4 border-t border-slate-200 shrink-0">
           <button type="button" onclick="closeAddModal()" class="px-4 py-2 bg-slate-200 text-slate-800 font-bold rounded-lg text-xs hover:bg-slate-300 transition">Cancel</button>
-          <button type="submit" id="modalSubmitBtn" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold rounded-lg text-xs transition shadow-sm">Save Employee</button>
+          <button type="submit" id="modalSubmitBtn" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold rounded-lg text-xs transition shadow-sm">Save to Google Sheet</button>
         </div>
       </form>
     </div>
   </div>
 
   <script>
-    const csvUrls = {
-      hr: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR6DAT9uKgT8hruMlMEhJZE2X0O2Rm0g1YqkrkOXv0KSGkwdFqzAK5jRdxpDlvS_xQmwsf5EVTqC3Z-/pub?gid=622384515&single=true&output=csv',
-      ops: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR6DAT9uKgT8hruMlMEhJZE2X0O2Rm0g1YqkrkOXv0KSGkwdFqzAK5jRdxpDlvS_xQmwsf5EVTqC3Z-/pub?gid=0&single=true&output=csv'
-    };
-
     const excludedColumns = ["selection remarks", "shift", "status"];
 
-    let activeTab = 'hr';
+    let activeTab = 'Warehouse';
     let globalHeaders = [];
     let globalTableRows = [];
     let columnFilters = {}; 
     let editingIndex = -1;
 
-    function getStorageKey(key) {
-      return `hrms_data_${activeTab}_${key}`;
-    }
-
     function switchTab(tab) {
       activeTab = tab;
       columnFilters = {};
       
-      const btnHR = document.getElementById('btnHR');
-      const btnOps = document.getElementById('btnOps');
+      const btnWarehouse = document.getElementById('btnWarehouse');
+      const btnPrinting = document.getElementById('btnPrinting');
       const tabTitle = document.getElementById('tabTitle');
 
-      if (tab === 'hr') {
-        btnHR.className = "w-full text-left flex items-center justify-between p-3 rounded-xl bg-blue-600 text-white font-bold shadow-md transition-all duration-200";
-        btnOps.className = "w-full text-left flex items-center justify-between p-3 rounded-xl hover:bg-slate-900 text-slate-400 hover:text-slate-100 font-bold transition-all duration-200";
+      if (tab === 'Warehouse') {
+        btnWarehouse.className = "w-full text-left flex items-center justify-between p-3 rounded-xl bg-blue-600 text-white font-bold shadow-md transition-all duration-200";
+        btnPrinting.className = "w-full text-left flex items-center justify-between p-3 rounded-xl hover:bg-slate-900 text-slate-400 hover:text-slate-100 font-bold transition-all duration-200";
         tabTitle.textContent = "Warehouse Onboarding";
       } else {
-        btnOps.className = "w-full text-left flex items-center justify-between p-3 rounded-xl bg-blue-600 text-white font-bold shadow-md transition-all duration-200";
-        btnHR.className = "w-full text-left flex items-center justify-between p-3 rounded-xl hover:bg-slate-900 text-slate-400 hover:text-slate-100 font-bold transition-all duration-200";
+        btnPrinting.className = "w-full text-left flex items-center justify-between p-3 rounded-xl bg-blue-600 text-white font-bold shadow-md transition-all duration-200";
+        btnWarehouse.className = "w-full text-left flex items-center justify-between p-3 rounded-xl hover:bg-slate-900 text-slate-400 hover:text-slate-100 font-bold transition-all duration-200";
         tabTitle.textContent = "Printing Press Onboarding";
       }
 
       document.getElementById('searchInput').value = '';
-      loadSheetData(false);
+      fetchLiveData();
     }
 
-    function parseCSV(text) {
-      let p = '', c = '', r = [];
-      let q = false;
-      let row = [''];
-      for (let i = 0; i < text.length; i++) {
-        c = text[i];
-        let next = text[i+1];
-        if (c === '"') {
-          if (q && next === '"') { row[row.length - 1] += '"'; i++; }
-          else { q = !q; }
-        } else if (c === ',' && !q) {
-          row.push('');
-        } else if ((c === '\r' || c === '\n') && !q) {
-          if (c === '\r' && next === '\n') { i++; }
-          r.push(row);
-          row = [''];
-        } else {
-          row[row.length - 1] += c;
-        }
-      }
-      if (row.length > 1 || row[0] !== '') { r.push(row); }
-      return r;
-    }
-
-    async function loadSheetData(forceRefresh = false) {
+    async function fetchLiveData() {
       const loader = document.getElementById('loader');
       const tableWrapper = document.getElementById('tableWrapper');
       
       loader.classList.remove('hidden');
       tableWrapper.classList.add('hidden');
 
-      if (forceRefresh) {
-        localStorage.removeItem(getStorageKey('edits'));
-      }
-
-      const timestamp = new Date().getTime();
-      const randomNonce = Math.random().toString(36).substring(2);
-      const targetUrl = csvUrls[activeTab] + `&nocache=${timestamp}_${randomNonce}`;
-
       try {
-        const response = await fetch(targetUrl, {
-          method: 'GET',
-          cache: 'no-store',
-          headers: {
-            'Pragma': 'no-cache',
-            'Cache-Control': 'no-cache, no-store, must-revalidate'
-          }
-        });
+        const response = await fetch(`${API_URL}?tab=${encodeURIComponent(activeTab)}`);
+        const data = await response.json();
 
-        const csvText = await response.text();
-        const rawData = parseCSV(csvText);
-        processRawArrayData(rawData, forceRefresh);
-
-        loader.classList.add('hidden');
-        tableWrapper.classList.remove('hidden');
-
-        if (forceRefresh) {
-          showAlert('100% Live Google Sheet Data Fetched!', 'success');
+        if (data && data.length > 0) {
+          processRawData(data);
+        } else {
+          showAlert('No data found in Google Sheet.', 'error');
         }
       } catch (err) {
-        showAlert('Failed to fetch updated Sheet data.', 'error');
+        showAlert('Failed to fetch data from Google Sheet. Check API_URL.', 'error');
+      } finally {
+        loader.classList.add('hidden');
+        tableWrapper.classList.remove('hidden');
       }
     }
 
-    function processRawArrayData(rawData, forceRefresh) {
-      if (!rawData || rawData.length === 0) return;
-
+    function processRawData(rawData) {
       let originalHeaders = rawData[0].map(h => (h || '').toString().trim());
       let validIndices = [];
       let headers = [];
@@ -311,37 +265,16 @@
       });
 
       globalHeaders = headers;
-      
       let sheetRows = [];
+
       for (let i = 1; i < rawData.length; i++) {
         let fullRow = rawData[i];
-        if (!fullRow || fullRow.length === 0 || (fullRow.length === 1 && fullRow[0].trim() === '')) continue;
+        if (!fullRow || fullRow.length === 0 || (fullRow.length === 1 && fullRow[0].toString().trim() === '')) continue;
         let filteredRow = validIndices.map(idx => (fullRow[idx] !== undefined ? fullRow[idx] : '').toString().trim());
         sheetRows.push(filteredRow);
       }
 
-      const primaryIdx = globalHeaders.findIndex(h => h.toLowerCase().includes('aadhar') || h.toLowerCase().includes('emp') || h.toLowerCase().includes('id'));
-      let localOverrides = JSON.parse(localStorage.getItem(getStorageKey('edits')) || '{}');
-      let localAdded = JSON.parse(localStorage.getItem(getStorageKey('added')) || '[]');
-      let mergedRows = [];
-
-      sheetRows.forEach((sRow, idx) => {
-        let uniqueKey = (primaryIdx !== -1 && sRow[primaryIdx]) ? sRow[primaryIdx].replace(/\s+/g, '') : `row_${idx}`;
-        if (localOverrides[uniqueKey] && !forceRefresh) {
-          mergedRows.push(localOverrides[uniqueKey]);
-        } else {
-          mergedRows.push(sRow);
-        }
-      });
-
-      localAdded.forEach(aRow => {
-        let uniqueKey = (primaryIdx !== -1 && aRow[primaryIdx]) ? aRow[primaryIdx].replace(/\s+/g, '') : null;
-        if (uniqueKey && !mergedRows.some(r => r[primaryIdx] && r[primaryIdx].replace(/\s+/g, '') === uniqueKey)) {
-          mergedRows.push(aRow);
-        }
-      });
-
-      globalTableRows = mergedRows;
+      globalTableRows = sheetRows;
       renderHRMSTable(globalTableRows, globalHeaders);
     }
 
@@ -380,7 +313,7 @@
 
         const searchInput = document.createElement('input');
         searchInput.type = "text";
-        searchInput.placeholder = `Search in ${headerText}...`;
+        searchInput.placeholder = `Search ${headerText}...`;
         searchInput.className = "w-full px-2.5 py-1.5 border border-slate-300 rounded-lg text-xs font-semibold text-slate-900 mb-2 focus:ring-2 focus:ring-blue-500 focus:outline-none";
         searchInput.value = (columnFilters[colIdx] && columnFilters[colIdx].textSearch) || '';
         searchInput.oninput = (e) => onFilterSearchInput(colIdx, e.target.value);
@@ -482,38 +415,27 @@
       e.stopPropagation();
       const menu = document.getElementById(`dropdown-menu-${colIdx}`);
       const isHidden = menu.classList.contains('hidden');
-
       closeAllDropdowns();
-
-      if (isHidden) {
-        menu.classList.remove('hidden');
-      }
+      if (isHidden) menu.classList.remove('hidden');
     }
 
     function closeAllDropdowns(e) {
       if (e && e.target.closest('[id^="dropdown-menu-"]')) return;
-      document.querySelectorAll('[id^="dropdown-menu-"]').forEach(menu => {
-        menu.classList.add('hidden');
-      });
+      document.querySelectorAll('[id^="dropdown-menu-"]').forEach(menu => menu.classList.add('hidden'));
     }
 
     function onFilterSearchInput(colIdx, text) {
       if (!columnFilters[colIdx]) columnFilters[colIdx] = { textSearch: '', selectedOption: '' };
       columnFilters[colIdx].textSearch = text;
-
       const uniqueVals = Array.from(new Set(globalTableRows.map(r => (r[colIdx] || '').toString().trim()))).filter(Boolean).sort();
       const optionsList = document.getElementById(`options-list-${colIdx}`);
-      if (optionsList) {
-        buildFilterOptions(colIdx, uniqueVals, optionsList);
-      }
-
+      if (optionsList) buildFilterOptions(colIdx, uniqueVals, optionsList);
       applyAllFilters();
     }
 
     function selectOption(colIdx, val) {
       if (!columnFilters[colIdx]) columnFilters[colIdx] = { textSearch: '', selectedOption: '' };
       columnFilters[colIdx].selectedOption = val;
-
       renderHRMSTable(globalTableRows, globalHeaders);
     }
 
@@ -539,13 +461,11 @@
         Object.keys(columnFilters).forEach(colIdx => {
           const targetCell = row.children[colIdx];
           const cellVal = targetCell ? targetCell.textContent.trim() : '';
-
           const filterObj = columnFilters[colIdx];
 
           if (filterObj.textSearch && !cellVal.toLowerCase().includes(filterObj.textSearch.toLowerCase())) {
             matchesColumnFilters = false;
           }
-
           if (filterObj.selectedOption && cellVal !== filterObj.selectedOption) {
             matchesColumnFilters = false;
           }
@@ -566,14 +486,13 @@
       editingIndex = isEdit ? editingIndex : -1;
       const container = document.getElementById('dynamicFormInputs');
       container.innerHTML = '';
-
       document.getElementById('modalErrorMsg').classList.add('hidden');
 
       document.getElementById('modalTitle').innerHTML = isEdit 
         ? `<i class="fa-solid fa-pen-to-square text-blue-400 mr-2"></i> Edit Employee Record`
         : `<i class="fa-solid fa-user-plus text-emerald-400 mr-2"></i> Onboard New Employee`;
 
-      document.getElementById('modalSubmitBtn').textContent = isEdit ? 'Update Employee' : 'Onboard Employee';
+      document.getElementById('modalSubmitBtn').textContent = isEdit ? 'Update in Google Sheet' : 'Save to Google Sheet';
 
       const existingData = isEdit ? globalTableRows[editingIndex] : [];
 
@@ -583,15 +502,14 @@
 
         const div = document.createElement('div');
         const val = existingData[idx] || '';
-
-        const isAadhaar = hLower.includes('aadhar');
+        const isPrimary = hLower.includes('aadhar') || hLower.includes('emp') || hLower.includes('id');
         const isMobile = hLower.includes('mobile') || hLower.includes('phone');
 
         div.innerHTML = `
-          <label class="block text-xs font-bold text-slate-700 mb-1">${h} ${isAadhaar ? '*' : ''}</label>
-          <input type="text" data-colindex="${idx}" value="${val}" ${isAadhaar ? 'required' : ''} 
+          <label class="block text-xs font-bold text-slate-700 mb-1">${h} ${isPrimary ? '*' : ''}</label>
+          <input type="text" data-colindex="${idx}" value="${val}" ${isPrimary ? 'required' : ''} 
             placeholder="Enter ${h}" 
-            class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-bold text-slate-900 ${isAadhaar || isMobile ? 'mono-number' : ''} focus:ring-2 focus:ring-blue-500 focus:outline-none">
+            class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-bold text-slate-900 ${isPrimary || isMobile ? 'mono-number' : ''} focus:ring-2 focus:ring-blue-500 focus:outline-none">
         `;
         container.appendChild(div);
       });
@@ -608,9 +526,12 @@
       editingIndex = -1;
     }
 
-    // UPDATED: Strict Duplicate Check
-    function handleFormSubmit(e) {
+    async function handleFormSubmit(e) {
       e.preventDefault();
+
+      const submitBtn = document.getElementById('modalSubmitBtn');
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Syncing to Sheet...";
 
       const inputs = document.querySelectorAll('#dynamicFormInputs input');
       let newRow = new Array(globalHeaders.length).fill('');
@@ -623,50 +544,41 @@
         const val = input.value.trim();
         newRow[idx] = val;
 
-        if (idx === primaryIdx) {
+        if (idx === primaryIdx || (primaryIdx === -1 && idx === 0)) {
           primaryValue = val.replace(/\s+/g, '');
         }
       });
 
-      // Check for Duplicate Number
-      if (primaryIdx !== -1 && primaryValue) {
-        let isDuplicate = globalTableRows.some((row, rIdx) => {
-          if (editingIndex >= 0 && rIdx === editingIndex) return false;
-          const existingVal = (row[primaryIdx] || '').toString().replace(/\s+/g, '');
-          return existingVal === primaryValue;
+      const action = editingIndex >= 0 ? "EDIT" : "ADD";
+
+      try {
+        const response = await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain" },
+          body: JSON.stringify({
+            tab: activeTab,
+            action: action,
+            rowData: newRow,
+            primaryId: primaryValue
+          })
         });
 
-        if (isDuplicate) {
-          const errDiv = document.getElementById('modalErrorMsg');
-          const errText = document.getElementById('modalErrorText');
-          errText.textContent = `RESTRICTED: Candidate with this Identification Number is ALREADY REGISTERED! Duplicate joining not allowed.`;
-          errDiv.classList.remove('hidden');
-          return;
+        const res = await response.json();
+
+        if (res.status === "SUCCESS") {
+          showAlert(res.message, 'success');
+          closeAddModal();
+          fetchLiveData();
+        } else {
+          document.getElementById('modalErrorText').textContent = res.message;
+          document.getElementById('modalErrorMsg').classList.remove('hidden');
         }
+      } catch (err) {
+        showAlert('Error updating Google Sheet!', 'error');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = editingIndex >= 0 ? 'Update in Google Sheet' : 'Save to Google Sheet';
       }
-
-      let key = primaryValue || `row_${editingIndex >= 0 ? editingIndex : globalTableRows.length}`;
-
-      if (editingIndex >= 0) {
-        globalTableRows[editingIndex] = newRow;
-
-        let localOverrides = JSON.parse(localStorage.getItem(getStorageKey('edits')) || '{}');
-        localOverrides[key] = newRow;
-        localStorage.setItem(getStorageKey('edits'), JSON.stringify(localOverrides));
-
-        showAlert(`Employee record updated in HRMS!`, 'success');
-      } else {
-        globalTableRows.push(newRow);
-
-        let localAdded = JSON.parse(localStorage.getItem(getStorageKey('added')) || '[]');
-        localAdded.push(newRow);
-        localStorage.setItem(getStorageKey('added'), JSON.stringify(localAdded));
-
-        showAlert(`New employee added successfully!`, 'success');
-      }
-
-      closeAddModal();
-      renderHRMSTable(globalTableRows, globalHeaders);
     }
 
     function editEmployee(index) {
@@ -674,11 +586,34 @@
       openAddModal(true);
     }
 
-    function deleteEmployee(index) {
-      if (confirm(`Are you sure you want to delete Employee #${index + 1}?`)) {
-        globalTableRows.splice(index, 1);
-        renderHRMSTable(globalTableRows, globalHeaders);
-        showAlert(`Employee #${index + 1} deleted!`, 'success');
+    async function deleteEmployee(index) {
+      if (!confirm(`Are you sure you want to permanently delete Employee #${index + 1} from Google Sheet?`)) return;
+
+      let primaryIdx = globalHeaders.findIndex(h => h.toLowerCase().includes('aadhar') || h.toLowerCase().includes('emp') || h.toLowerCase().includes('id'));
+      if (primaryIdx === -1) primaryIdx = 0;
+
+      const targetId = globalTableRows[index][primaryIdx];
+
+      try {
+        const response = await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain" },
+          body: JSON.stringify({
+            tab: activeTab,
+            action: "DELETE",
+            primaryId: targetId
+          })
+        });
+
+        const res = await response.json();
+        if (res.status === "SUCCESS") {
+          showAlert(res.message, 'success');
+          fetchLiveData();
+        } else {
+          showAlert(res.message, 'error');
+        }
+      } catch (err) {
+        showAlert('Failed to delete record from Google Sheet.', 'error');
       }
     }
 
@@ -701,7 +636,8 @@
       document.getElementById('alertBanner').classList.add('hidden');
     }
 
-    loadSheetData(false);
+    // Initial Load
+    fetchLiveData();
   </script>
 </body>
 </html>
