@@ -193,10 +193,6 @@
     let globalTableRows = [];
     let editingIndex = -1;
 
-    function getStorageKey(key) {
-      return `hrms_data_${activeTab}_${key}`;
-    }
-
     function switchTab(tab) {
       activeTab = tab;
       
@@ -225,16 +221,19 @@
       loader.classList.remove('hidden');
       tableWrapper.classList.add('hidden');
 
-      const baseUrl = csvUrls[activeTab];
-      const fetchUrl = `${baseUrl}&_cb=${new Date().getTime()}`;
+      const rawUrl = csvUrls[activeTab];
+      const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(rawUrl + '&_cb=' + new Date().getTime())}`;
 
       try {
-        const response = await fetch(fetchUrl, { cache: 'no-store' });
+        let response = await fetch(proxyUrl);
+        if (!response.ok) {
+          response = await fetch(rawUrl + '&_cb=' + new Date().getTime());
+        }
+        
         const csvText = await response.text();
 
-        // Check if fetched data is HTML (Permission Error)
         if (csvText.trim().toLowerCase().startsWith('<!doctype html') || csvText.trim().toLowerCase().startsWith('<html')) {
-          throw new Error("HTML Response Received. Please publish Google Sheet to Web as CSV.");
+          throw new Error("HTML Response Received. Please check Google Sheet Publish settings.");
         }
 
         processCSVData(csvText);
@@ -295,7 +294,7 @@
       statCols.textContent = headers.length;
       statTotal.textContent = rows.length;
 
-      // Header & Search Filter Input Row
+      // Header & Search Input Filter Row for each column
       headers.forEach((header, colIdx) => {
         const th = document.createElement('th');
         th.className = "px-4 py-3 border-b border-slate-300 font-extrabold text-slate-900 text-left whitespace-nowrap bg-slate-200";
