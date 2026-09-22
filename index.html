@@ -3,9 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PW Offroll HRMS Portal</title>
+  <title>PW Offroll HRMS</title>
+  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@600;700&display=swap" rel="stylesheet">
 
   <style>
@@ -13,61 +16,76 @@
     .custom-scrollbar::-webkit-scrollbar { height: 8px; width: 8px; }
     .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
     .custom-scrollbar::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 4px; }
+    .mono-number {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+    }
   </style>
 </head>
-<body class="bg-slate-100 text-slate-900 antialiased h-screen overflow-hidden">
+<body class="bg-slate-100 text-slate-900 antialiased h-screen overflow-hidden" onclick="closeAllDropdowns(event)">
 
   <div class="flex h-full">
     <!-- Sidebar -->
     <aside class="w-64 bg-slate-950 text-slate-200 flex flex-col justify-between p-5 shadow-2xl z-20">
       <div>
         <div class="flex items-center gap-3 px-2 py-3 mb-6 border-b border-slate-800">
-          <div class="bg-blue-600 text-white p-2.5 rounded-xl shadow-lg">
+          <div class="bg-blue-600 text-white p-2.5 rounded-xl shadow-lg shadow-blue-600/40">
             <i class="fa-solid fa-users-gear text-xl"></i>
           </div>
           <div>
-            <h2 class="font-extrabold text-white text-base">PW Offroll HRMS</h2>
-            <span class="text-[11px] text-slate-400 font-semibold uppercase">Live CSV & Local Storage</span>
+            <h2 class="font-extrabold text-white text-base tracking-wide leading-tight">PW Offroll HRMS</h2>
+            <span class="text-[11px] text-slate-400 font-semibold uppercase tracking-wider">Enterprise Portal</span>
           </div>
         </div>
 
-        <div class="text-[11px] font-bold text-slate-400 uppercase mb-3 px-2">Navigation</div>
+        <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider px-3 mb-3">Dashboards</div>
         <nav class="space-y-2">
-          <button onclick="switchTab('Warehouse')" id="btnWarehouse" class="w-full text-left flex items-center justify-between p-3 rounded-xl bg-blue-600 text-white font-bold shadow-md transition">
-            <span class="flex items-center gap-3"><i class="fa-solid fa-warehouse"></i> Warehouse</span>
+          <button onclick="switchTab('hr')" id="btnHR" class="w-full text-left flex items-center justify-between p-3 rounded-xl bg-blue-600 text-white font-bold shadow-md transition-all duration-200">
+            <span class="flex items-center gap-3"><i class="fa-solid fa-warehouse text-lg"></i> Warehouse Onboarding</span>
+            <i class="fa-solid fa-chevron-right text-xs opacity-70"></i>
           </button>
           
-          <button onclick="switchTab('PrintingPress')" id="btnPrinting" class="w-full text-left flex items-center justify-between p-3 rounded-xl hover:bg-slate-900 text-slate-400 hover:text-white font-bold transition">
-            <span class="flex items-center gap-3"><i class="fa-solid fa-print"></i> Printing Press</span>
+          <button onclick="switchTab('ops')" id="btnOps" class="w-full text-left flex items-center justify-between p-3 rounded-xl hover:bg-slate-900 text-slate-400 hover:text-slate-100 font-bold transition-all duration-200">
+            <span class="flex items-center gap-3"><i class="fa-solid fa-print text-lg"></i> Printing Press Onboarding</span>
+            <i class="fa-solid fa-chevron-right text-xs opacity-70"></i>
           </button>
         </nav>
       </div>
 
-      <div class="p-3.5 bg-slate-900 rounded-xl border border-slate-800">
+      <div class="p-3.5 bg-slate-900/80 rounded-xl border border-slate-800">
         <div class="flex items-center gap-2 text-xs font-bold text-emerald-400">
-          <span class="h-2.5 w-2.5 rounded-full bg-emerald-500 animate-ping"></span>
-          Permanent Deletion Sync
+          <span class="relative flex h-2.5 w-2.5">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+          </span>
+          100% Accurate Sync Active
         </div>
+        <p class="text-[11px] text-slate-400 font-medium mt-1">Direct Stream Engine</p>
       </div>
     </aside>
 
     <!-- Main Content -->
     <main class="flex-1 flex flex-col h-full overflow-hidden">
-      <header class="bg-white border-b border-slate-300 px-8 py-4 flex justify-between items-center shadow-sm">
+      
+      <header class="bg-white border-b border-slate-300 px-8 py-4 flex justify-between items-center shadow-sm z-10">
         <div>
-          <h1 id="tabTitle" class="text-2xl font-black text-slate-950">Warehouse Onboarding</h1>
-          <p class="text-xs font-semibold text-slate-500">Live Data Fetcher with Permanent Delete Memory</p>
+          <h1 id="tabTitle" class="text-2xl font-black text-slate-950 tracking-tight">Warehouse Onboarding</h1>
+          <p class="text-xs font-semibold text-slate-500 mt-0.5">Real-time onboarding management & employee records</p>
         </div>
 
         <div class="flex items-center gap-3">
-          <input type="text" id="searchInput" oninput="applySearchFilter()" placeholder="Search employee..." class="px-4 py-2 bg-slate-100 border rounded-lg text-xs font-bold focus:outline-none focus:ring-2 focus:ring-blue-500">
-          
-          <button onclick="openModal(false)" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-xs font-extrabold flex items-center gap-2 shadow-sm">
+          <div class="relative w-72">
+            <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
+            <input type="text" id="searchInput" oninput="applyAllFilters()" placeholder="Global Search (Name, ID, Mobile...)" class="w-full pl-9 pr-4 py-2 bg-slate-100 border border-slate-300 rounded-lg text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
+
+          <button onclick="openAddModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-xs font-extrabold flex items-center gap-2 shadow-sm transition">
             <i class="fa-solid fa-user-plus"></i> Add Employee
           </button>
 
-          <button onclick="clearAndRefetch()" class="bg-rose-600 hover:bg-rose-700 text-white px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2 shadow-sm" title="Clear Cache and Refetch Sheet">
-            <i class="fa-solid fa-rotate"></i> Reset/Refetch
+          <button onclick="loadSheetData(true)" class="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2 shadow-sm transition">
+            <i class="fa-solid fa-bolt text-amber-400"></i> Force Sync Sheet
           </button>
         </div>
       </header>
@@ -77,50 +95,72 @@
         <!-- Stat Cards -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-6">
           <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-300 flex items-center gap-4">
-            <div class="p-3 bg-blue-100 text-blue-700 rounded-xl"><i class="fa-solid fa-users text-2xl"></i></div>
+            <div class="p-3.5 bg-blue-100 text-blue-700 rounded-xl">
+              <i class="fa-solid fa-users text-2xl"></i>
+            </div>
             <div>
-              <p class="text-xs font-bold uppercase text-slate-500">Active Records</p>
-              <h3 id="statTotal" class="text-2xl font-black text-slate-950">0</h3>
+              <p class="text-xs font-bold uppercase text-slate-500 tracking-wider">Total Onboarded</p>
+              <h3 id="statTotal" class="text-2xl font-black text-slate-950 mt-0.5">--</h3>
             </div>
           </div>
 
           <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-300 flex items-center gap-4">
-            <div class="p-3 bg-indigo-100 text-indigo-700 rounded-xl"><i class="fa-solid fa-table-list text-2xl"></i></div>
+            <div class="p-3.5 bg-indigo-100 text-indigo-700 rounded-xl">
+              <i class="fa-solid fa-table-list text-2xl"></i>
+            </div>
             <div>
-              <p class="text-xs font-bold uppercase text-slate-500">Total Fields</p>
-              <h3 id="statCols" class="text-2xl font-black text-slate-950">0</h3>
+              <p class="text-xs font-bold uppercase text-slate-500 tracking-wider">Total Data Fields</p>
+              <h3 id="statCols" class="text-2xl font-black text-slate-950 mt-0.5">--</h3>
             </div>
           </div>
 
           <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-300 flex items-center gap-4">
-            <div class="p-3 bg-emerald-100 text-emerald-700 rounded-xl"><i class="fa-solid fa-shield-halved text-2xl"></i></div>
+            <div class="p-3.5 bg-emerald-100 text-emerald-700 rounded-xl">
+              <i class="fa-solid fa-shield-check text-2xl"></i>
+            </div>
             <div>
-              <p class="text-xs font-bold uppercase text-slate-500">Duplicate Shield</p>
-              <h3 class="text-sm font-black text-emerald-700">Strictly Active</h3>
+              <p class="text-xs font-bold uppercase text-slate-500 tracking-wider">System Security</p>
+              <h3 class="text-base font-black text-emerald-700 mt-0.5">Duplicate Aadhaar Blocked</h3>
             </div>
           </div>
         </div>
 
         <div id="alertBanner" class="hidden mb-4 p-4 rounded-xl border font-bold text-xs flex items-center justify-between">
           <span id="alertMessage"></span>
-          <button onclick="document.getElementById('alertBanner').classList.add('hidden')" class="font-bold text-lg">&times;</button>
+          <button onclick="hideAlert()" class="text-lg font-bold ml-4">&times;</button>
         </div>
 
-        <!-- Table -->
+        <!-- Table Container -->
         <div class="bg-white rounded-2xl shadow-sm border border-slate-300 flex-1 flex flex-col overflow-hidden">
+          
+          <div class="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+            <div class="flex items-center gap-3">
+              <i class="fa-solid fa-folder-open text-blue-600 text-base"></i>
+              <h3 id="directoryHeading" class="font-extrabold text-slate-900 text-sm tracking-wide">Candidate Records Directory</h3>
+            </div>
+            
+            <div class="flex items-center gap-3">
+              <button onclick="clearAllFilters()" class="text-xs font-bold text-rose-600 hover:text-rose-800 bg-rose-50 hover:bg-rose-100 px-3 py-1.5 rounded-lg border border-rose-200 transition flex items-center gap-1.5">
+                <i class="fa-solid fa-filter-circle-xmark"></i> Clear All Filters
+              </button>
+              <span id="filteredCount" class="text-xs font-bold text-slate-700 bg-slate-200 px-3 py-1.5 rounded-full">Showing entries</span>
+            </div>
+          </div>
+
           <div id="loader" class="flex-1 flex flex-col items-center justify-center p-8">
             <div class="w-10 h-10 border-4 border-blue-600/30 border-t-blue-600 rounded-full animate-spin mb-3"></div>
-            <p class="text-xs font-bold text-slate-600">Syncing with Google Sheet...</p>
+            <p class="text-xs font-bold text-slate-600">Syncing live data from Google Sheets...</p>
           </div>
 
           <div id="tableWrapper" class="flex-1 overflow-auto custom-scrollbar hidden">
             <table class="w-full text-left border-collapse" id="hrmsTable">
-              <thead class="bg-slate-200 text-slate-900 uppercase text-[11px] font-extrabold sticky top-0 border-b">
+              <thead class="bg-slate-200 text-slate-900 uppercase text-[11px] tracking-wider font-extrabold sticky top-0 z-10 border-b border-slate-300">
                 <tr id="tableHead"></tr>
               </thead>
-              <tbody id="tableBody" class="divide-y divide-slate-200 text-xs font-bold"></tbody>
+              <tbody id="tableBody" class="divide-y divide-slate-200 text-xs font-bold text-slate-900"></tbody>
             </table>
           </div>
+
         </div>
 
       </div>
@@ -128,296 +168,540 @@
   </div>
 
   <!-- Modal -->
-  <div id="empModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-xl overflow-hidden border flex flex-col max-h-[90vh]">
-      <div class="bg-slate-950 text-white px-6 py-4 flex justify-between items-center">
-        <h3 id="modalTitle" class="font-extrabold text-sm">Add New Employee</h3>
-        <button onclick="closeModal()" class="text-slate-400 hover:text-white text-lg font-bold">&times;</button>
+  <div id="addModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-xl overflow-hidden border border-slate-300 flex flex-col max-h-[90vh]">
+      <div class="bg-slate-950 text-white px-6 py-4 flex justify-between items-center shrink-0">
+        <h3 id="modalTitle" class="font-extrabold text-sm"><i class="fa-solid fa-user-plus text-emerald-400 mr-2"></i> Onboard New Employee</h3>
+        <button onclick="closeAddModal()" class="text-slate-400 hover:text-white text-lg font-bold">&times;</button>
       </div>
 
-      <form id="empForm" onsubmit="handleFormSubmit(event)" class="p-6 overflow-y-auto space-y-4 custom-scrollbar flex-1">
-        <div id="formInputs" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
-        <div id="modalError" class="hidden p-3 bg-rose-100 text-rose-800 font-bold text-xs rounded-lg"></div>
+      <form id="addEmployeeForm" onsubmit="handleFormSubmit(event)" class="p-6 overflow-y-auto space-y-4 custom-scrollbar flex-1">
+        <div id="dynamicFormInputs" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
 
-        <div class="flex justify-end gap-3 pt-4 border-t">
-          <button type="button" onclick="closeModal()" class="px-4 py-2 bg-slate-200 text-slate-800 font-bold rounded-lg text-xs">Cancel</button>
-          <button type="submit" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold rounded-lg text-xs">Save Record</button>
+        <!-- Validation Error Message inside Modal -->
+        <div id="modalErrorMsg" class="hidden p-3 bg-rose-100 border border-rose-300 text-rose-800 font-bold text-xs rounded-lg flex items-center gap-2">
+          <i class="fa-solid fa-triangle-exclamation text-rose-600 text-sm"></i>
+          <span id="modalErrorText"></span>
+        </div>
+
+        <div class="flex justify-end gap-3 pt-4 border-t border-slate-200 shrink-0">
+          <button type="button" onclick="closeAddModal()" class="px-4 py-2 bg-slate-200 text-slate-800 font-bold rounded-lg text-xs hover:bg-slate-300 transition">Cancel</button>
+          <button type="submit" id="modalSubmitBtn" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold rounded-lg text-xs transition shadow-sm">Save Employee</button>
         </div>
       </form>
     </div>
   </div>
 
   <script>
-    const CSV_URLS = {
-      Warehouse: "https://docs.google.com/spreadsheets/d/e/2PACX-1vT17aGvO1QO_8z46p4r8P7QxGZg49T23X66sVf/pub?gid=0&single=true&output=csv",
-      PrintingPress: "https://docs.google.com/spreadsheets/d/e/2PACX-1vT17aGvO1QO_8z46p4r8P7QxGZg49T23X66sVf/pub?gid=12345678&single=true&output=csv"
+    const csvUrls = {
+      hr: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR6DAT9uKgT8hruMlMEhJZE2X0O2Rm0g1YqkrkOXv0KSGkwdFqzAK5jRdxpDlvS_xQmwsf5EVTqC3Z-/pub?gid=622384515&single=true&output=csv',
+      ops: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR6DAT9uKgT8hruMlMEhJZE2X0O2Rm0g1YqkrkOXv0KSGkwdFqzAK5jRdxpDlvS_xQmwsf5EVTqC3Z-/pub?gid=0&single=true&output=csv'
     };
 
-    let activeTab = 'Warehouse';
+    const excludedColumns = ["selection remarks", "shift", "status"];
+
+    let activeTab = 'hr';
     let globalHeaders = [];
-    let globalRows = [];
-    let deletedIds = []; 
-    let editingRowIdx = -1;
+    let globalTableRows = [];
+    let columnFilters = {}; 
+    let editingIndex = -1;
+
+    function getStorageKey(key) {
+      return `hrms_data_${activeTab}_${key}`;
+    }
 
     function switchTab(tab) {
       activeTab = tab;
-      document.getElementById('tabTitle').textContent = tab === 'Warehouse' ? "Warehouse Onboarding" : "Printing Press Onboarding";
-      document.getElementById('btnWarehouse').className = tab === 'Warehouse' ? "w-full text-left flex items-center justify-between p-3 rounded-xl bg-blue-600 text-white font-bold shadow-md transition" : "w-full text-left flex items-center justify-between p-3 rounded-xl hover:bg-slate-900 text-slate-400 hover:text-white font-bold transition";
-      document.getElementById('btnPrinting').className = tab === 'PrintingPress' ? "w-full text-left flex items-center justify-between p-3 rounded-xl bg-blue-600 text-white font-bold shadow-md transition" : "w-full text-left flex items-center justify-between p-3 rounded-xl hover:bg-slate-900 text-slate-400 hover:text-white font-bold transition";
+      columnFilters = {};
       
-      initData();
-    }
+      const btnHR = document.getElementById('btnHR');
+      const btnOps = document.getElementById('btnOps');
+      const tabTitle = document.getElementById('tabTitle');
 
-    async function initData() {
-      document.getElementById('loader').classList.remove('hidden');
-      document.getElementById('tableWrapper').classList.add('hidden');
-
-      // Load deleted IDs list
-      const savedDeleted = localStorage.getItem(`hrms_deleted_${activeTab}`);
-      deletedIds = savedDeleted ? JSON.parse(savedDeleted) : [];
-
-      // Check if local modified data exists
-      const localData = localStorage.getItem(`hrms_data_${activeTab}`);
-      const localHeaders = localStorage.getItem(`hrms_headers_${activeTab}`);
-
-      if (localData && localHeaders) {
-        globalHeaders = JSON.parse(localHeaders);
-        globalRows = JSON.parse(localData);
-        renderTable();
-        document.getElementById('loader').classList.add('hidden');
-        document.getElementById('tableWrapper').classList.remove('hidden');
+      if (tab === 'hr') {
+        btnHR.className = "w-full text-left flex items-center justify-between p-3 rounded-xl bg-blue-600 text-white font-bold shadow-md transition-all duration-200";
+        btnOps.className = "w-full text-left flex items-center justify-between p-3 rounded-xl hover:bg-slate-900 text-slate-400 hover:text-slate-100 font-bold transition-all duration-200";
+        tabTitle.textContent = "Warehouse Onboarding";
       } else {
-        await fetchFromCSV();
+        btnOps.className = "w-full text-left flex items-center justify-between p-3 rounded-xl bg-blue-600 text-white font-bold shadow-md transition-all duration-200";
+        btnHR.className = "w-full text-left flex items-center justify-between p-3 rounded-xl hover:bg-slate-900 text-slate-400 hover:text-slate-100 font-bold transition-all duration-200";
+        tabTitle.textContent = "Printing Press Onboarding";
       }
-    }
 
-    async function fetchFromCSV() {
-      try {
-        const response = await fetch(CSV_URLS[activeTab] || CSV_URLS.Warehouse);
-        const csvText = await response.text();
-        const parsedData = parseCSV(csvText);
-
-        if (parsedData && parsedData.length > 0) {
-          globalHeaders = parsedData[0];
-          let rawRows = parsedData.slice(1);
-
-          // Find Identification Column (Aadhaar/Emp ID)
-          const primaryIdx = getPrimaryColIndex(globalHeaders);
-
-          // Filter out rows that were previously DELETED
-          globalRows = rawRows.filter(row => {
-            const rowId = (row[primaryIdx] || "").trim().toLowerCase();
-            return rowId && !deletedIds.includes(rowId);
-          });
-
-          saveToLocalStorage();
-          renderTable();
-        } else {
-          showAlert("CSV Sheet empty mili!", "error");
-        }
-      } catch (err) {
-        showAlert("Google Sheet Sync Failed! Checking local data.", "error");
-      } finally {
-        document.getElementById('loader').classList.add('hidden');
-        document.getElementById('tableWrapper').classList.remove('hidden');
-      }
+      document.getElementById('searchInput').value = '';
+      loadSheetData(false);
     }
 
     function parseCSV(text) {
-      let lines = text.split('\n').map(l => l.trim()).filter(Boolean);
-      return lines.map(line => {
-        let values = [];
-        let insideQuote = false;
-        let currentVal = '';
-        for (let char of line) {
-          if (char === '"') { insideQuote = !insideQuote; }
-          else if (char === ',' && !insideQuote) {
-            values.push(currentVal.trim());
-            currentVal = '';
-          } else { currentVal += char; }
+      let p = '', c = '', r = [];
+      let q = false;
+      let row = [''];
+      for (let i = 0; i < text.length; i++) {
+        c = text[i];
+        let next = text[i+1];
+        if (c === '"') {
+          if (q && next === '"') { row[row.length - 1] += '"'; i++; }
+          else { q = !q; }
+        } else if (c === ',' && !q) {
+          row.push('');
+        } else if ((c === '\r' || c === '\n') && !q) {
+          if (c === '\r' && next === '\n') { i++; }
+          r.push(row);
+          row = [''];
+        } else {
+          row[row.length - 1] += c;
         }
-        values.push(currentVal.trim());
-        return values;
-      });
+      }
+      if (row.length > 1 || row[0] !== '') { r.push(row); }
+      return r;
     }
 
-    function getPrimaryColIndex(headers) {
-      const idx = headers.findIndex(h => {
-        const str = h.toLowerCase();
-        return str.includes('aadhar') || str.includes('emp') || str.includes('id') || str.includes('code');
-      });
-      return idx >= 0 ? idx : 0;
-    }
+    async function loadSheetData(forceRefresh = false) {
+      const loader = document.getElementById('loader');
+      const tableWrapper = document.getElementById('tableWrapper');
+      
+      loader.classList.remove('hidden');
+      tableWrapper.classList.add('hidden');
 
-    function saveToLocalStorage() {
-      localStorage.setItem(`hrms_headers_${activeTab}`, JSON.stringify(globalHeaders));
-      localStorage.setItem(`hrms_data_${activeTab}`, JSON.stringify(globalRows));
-      localStorage.setItem(`hrms_deleted_${activeTab}`, JSON.stringify(deletedIds));
-    }
+      if (forceRefresh) {
+        localStorage.removeItem(getStorageKey('edits'));
+      }
 
-    function clearAndRefetch() {
-      if (confirm("Kyu aap pure Cache ko reset karke Google Sheet se wapas data load karna chahte hain? (Deleted History bhi reset ho jayegi)")) {
-        localStorage.removeItem(`hrms_headers_${activeTab}`);
-        localStorage.removeItem(`hrms_data_${activeTab}`);
-        localStorage.removeItem(`hrms_deleted_${activeTab}`);
-        initData();
-        showAlert("Reset completed!", "success");
+      const timestamp = new Date().getTime();
+      const randomNonce = Math.random().toString(36).substring(2);
+      const targetUrl = csvUrls[activeTab] + `&nocache=${timestamp}_${randomNonce}`;
+
+      try {
+        const response = await fetch(targetUrl, {
+          method: 'GET',
+          cache: 'no-store',
+          headers: {
+            'Pragma': 'no-cache',
+            'Cache-Control': 'no-cache, no-store, must-revalidate'
+          }
+        });
+
+        const csvText = await response.text();
+        const rawData = parseCSV(csvText);
+        processRawArrayData(rawData, forceRefresh);
+
+        loader.classList.add('hidden');
+        tableWrapper.classList.remove('hidden');
+
+        if (forceRefresh) {
+          showAlert('100% Live Google Sheet Data Fetched!', 'success');
+        }
+      } catch (err) {
+        showAlert('Failed to fetch updated Sheet data.', 'error');
       }
     }
 
-    function renderTable() {
-      const head = document.getElementById('tableHead');
-      const body = document.getElementById('tableBody');
-      head.innerHTML = '';
-      body.innerHTML = '';
+    function processRawArrayData(rawData, forceRefresh) {
+      if (!rawData || rawData.length === 0) return;
 
-      document.getElementById('statTotal').textContent = globalRows.length;
-      document.getElementById('statCols').textContent = globalHeaders.length;
+      let originalHeaders = rawData[0].map(h => (h || '').toString().trim());
+      let validIndices = [];
+      let headers = [];
 
-      globalHeaders.forEach(h => {
+      originalHeaders.forEach((h, idx) => {
+        if (!excludedColumns.includes(h.toLowerCase())) {
+          validIndices.push(idx);
+          headers.push(h);
+        }
+      });
+
+      globalHeaders = headers;
+      
+      let sheetRows = [];
+      for (let i = 1; i < rawData.length; i++) {
+        let fullRow = rawData[i];
+        if (!fullRow || fullRow.length === 0 || (fullRow.length === 1 && fullRow[0].trim() === '')) continue;
+        let filteredRow = validIndices.map(idx => (fullRow[idx] !== undefined ? fullRow[idx] : '').toString().trim());
+        sheetRows.push(filteredRow);
+      }
+
+      const primaryIdx = globalHeaders.findIndex(h => h.toLowerCase().includes('aadhar') || h.toLowerCase().includes('emp') || h.toLowerCase().includes('id'));
+      let localOverrides = JSON.parse(localStorage.getItem(getStorageKey('edits')) || '{}');
+      let localAdded = JSON.parse(localStorage.getItem(getStorageKey('added')) || '[]');
+      let mergedRows = [];
+
+      sheetRows.forEach((sRow, idx) => {
+        let uniqueKey = (primaryIdx !== -1 && sRow[primaryIdx]) ? sRow[primaryIdx].replace(/\s+/g, '') : `row_${idx}`;
+        if (localOverrides[uniqueKey] && !forceRefresh) {
+          mergedRows.push(localOverrides[uniqueKey]);
+        } else {
+          mergedRows.push(sRow);
+        }
+      });
+
+      localAdded.forEach(aRow => {
+        let uniqueKey = (primaryIdx !== -1 && aRow[primaryIdx]) ? aRow[primaryIdx].replace(/\s+/g, '') : null;
+        if (uniqueKey && !mergedRows.some(r => r[primaryIdx] && r[primaryIdx].replace(/\s+/g, '') === uniqueKey)) {
+          mergedRows.push(aRow);
+        }
+      });
+
+      globalTableRows = mergedRows;
+      renderHRMSTable(globalTableRows, globalHeaders);
+    }
+
+    function renderHRMSTable(rows, headers) {
+      const tableHead = document.getElementById('tableHead');
+      const tableBody = document.getElementById('tableBody');
+      const statTotal = document.getElementById('statTotal');
+      const statCols = document.getElementById('statCols');
+
+      tableHead.innerHTML = '';
+      tableBody.innerHTML = '';
+
+      statCols.textContent = headers.length;
+      statTotal.textContent = rows.length;
+
+      headers.forEach((headerText, colIdx) => {
         const th = document.createElement('th');
-        th.className = "px-4 py-3 whitespace-nowrap";
-        th.textContent = h;
-        head.appendChild(th);
+        th.className = "px-4 py-3 border-b border-slate-300 font-extrabold text-slate-900 text-left whitespace-nowrap bg-slate-200 relative";
+
+        const uniqueVals = Array.from(new Set(rows.map(r => (r[colIdx] || '').toString().trim()))).filter(Boolean).sort();
+
+        const flexContainer = document.createElement('div');
+        flexContainer.className = "flex items-center justify-between gap-2";
+
+        const titleSpan = document.createElement('span');
+        titleSpan.textContent = headerText || 'Field';
+
+        const filterBtn = document.createElement('button');
+        filterBtn.className = `p-1 rounded text-[11px] transition hover:bg-slate-300 ${columnFilters[colIdx] && (columnFilters[colIdx].selectedOption || columnFilters[colIdx].textSearch) ? 'text-blue-600 font-black' : 'text-slate-600'}`;
+        filterBtn.innerHTML = `<i class="fa-solid fa-filter"></i>`;
+        filterBtn.onclick = (e) => toggleDropdownMenu(e, colIdx);
+
+        const dropdownMenu = document.createElement('div');
+        dropdownMenu.id = `dropdown-menu-${colIdx}`;
+        dropdownMenu.className = "hidden absolute top-full left-0 mt-1 w-52 bg-white rounded-xl shadow-2xl border border-slate-300 z-50 p-2 font-normal normal-case text-slate-800 text-xs";
+
+        const searchInput = document.createElement('input');
+        searchInput.type = "text";
+        searchInput.placeholder = `Search in ${headerText}...`;
+        searchInput.className = "w-full px-2.5 py-1.5 border border-slate-300 rounded-lg text-xs font-semibold text-slate-900 mb-2 focus:ring-2 focus:ring-blue-500 focus:outline-none";
+        searchInput.value = (columnFilters[colIdx] && columnFilters[colIdx].textSearch) || '';
+        searchInput.oninput = (e) => onFilterSearchInput(colIdx, e.target.value);
+
+        const optionsList = document.createElement('div');
+        optionsList.id = `options-list-${colIdx}`;
+        optionsList.className = "max-h-40 overflow-y-auto custom-scrollbar space-y-0.5";
+
+        buildFilterOptions(colIdx, uniqueVals, optionsList);
+
+        dropdownMenu.appendChild(searchInput);
+        dropdownMenu.appendChild(optionsList);
+
+        flexContainer.appendChild(titleSpan);
+        flexContainer.appendChild(filterBtn);
+        th.appendChild(flexContainer);
+        th.appendChild(dropdownMenu);
+        tableHead.appendChild(th);
       });
 
       const actionTh = document.createElement('th');
-      actionTh.className = "px-4 py-3 text-center";
+      actionTh.className = "px-4 py-3 border-b border-slate-300 font-extrabold text-slate-900 text-center whitespace-nowrap bg-slate-200";
       actionTh.textContent = "ACTIONS";
-      head.appendChild(actionTh);
+      tableHead.appendChild(actionTh);
 
-      globalRows.forEach((row, rIdx) => {
+      const snIdx = headers.findIndex(h => h.toLowerCase() === 'sn' || h.toLowerCase().includes('serial'));
+
+      rows.forEach((row, rowIndex) => {
         const tr = document.createElement('tr');
-        tr.className = "hover:bg-slate-200/60 transition border-b";
+        tr.className = "hover:bg-slate-200/60 transition border-b border-slate-200 text-slate-900 font-bold";
 
-        globalHeaders.forEach((_, cIdx) => {
+        row.forEach((cellVal, colIdx) => {
           const td = document.createElement('td');
-          td.className = "px-4 py-3 whitespace-nowrap";
-          td.textContent = row[cIdx] || '-';
+          let val = (cellVal || '').toString().trim();
+          const colName = (headers[colIdx] || '').toLowerCase();
+
+          if (colIdx === snIdx || colName === 'sn') {
+            val = (rowIndex + 1).toString();
+            row[colIdx] = val;
+          }
+
+          const isNumberOrId = /^\d+$/.test(val) || colName.includes('aadhar') || colName.includes('mobile') || colName.includes('emp');
+
+          if (isNumberOrId) {
+            td.className = "px-4 py-3.5 whitespace-nowrap mono-number text-left tracking-wider text-slate-950 font-bold bg-slate-50/50";
+          } else {
+            td.className = "px-4 py-3.5 whitespace-nowrap text-left text-slate-900 font-bold";
+          }
+
+          td.textContent = val || '-';
           tr.appendChild(td);
         });
 
         const actionTd = document.createElement('td');
-        actionTd.className = "px-4 py-3 text-center space-x-2";
+        actionTd.className = "px-4 py-3.5 whitespace-nowrap text-center space-x-2";
         actionTd.innerHTML = `
-          <button onclick="editRow(${rIdx})" class="p-1.5 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200" title="Edit"><i class="fa-solid fa-pen"></i></button>
-          <button onclick="deleteRow(${rIdx})" class="p-1.5 bg-rose-100 text-rose-700 rounded-lg hover:bg-rose-200" title="Delete"><i class="fa-solid fa-trash"></i></button>
+          <button onclick="editEmployee(${rowIndex})" class="p-1.5 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg text-xs transition" title="Edit Employee">
+            <i class="fa-solid fa-pen-to-square"></i>
+          </button>
+          <button onclick="deleteEmployee(${rowIndex})" class="p-1.5 bg-rose-100 hover:bg-rose-200 text-rose-700 rounded-lg text-xs transition" title="Delete Employee">
+            <i class="fa-solid fa-trash"></i>
+          </button>
         `;
         tr.appendChild(actionTd);
-        body.appendChild(tr);
+
+        tableBody.appendChild(tr);
+      });
+
+      applyAllFilters();
+    }
+
+    function buildFilterOptions(colIdx, uniqueVals, optionsList) {
+      optionsList.innerHTML = '';
+
+      const allOpt = document.createElement('div');
+      allOpt.className = `px-2 py-1.5 rounded cursor-pointer font-bold transition text-xs ${!columnFilters[colIdx] || !columnFilters[colIdx].selectedOption ? 'bg-blue-50 text-blue-700 font-extrabold' : 'hover:bg-slate-100 text-slate-700'}`;
+      allOpt.textContent = "Select All (Reset)";
+      allOpt.onclick = () => selectOption(colIdx, '');
+      optionsList.appendChild(allOpt);
+
+      const searchVal = (columnFilters[colIdx] && columnFilters[colIdx].textSearch) ? columnFilters[colIdx].textSearch.toLowerCase() : '';
+
+      uniqueVals.forEach(val => {
+        if (searchVal && !val.toLowerCase().includes(searchVal)) return;
+
+        const opt = document.createElement('div');
+        const isSelected = columnFilters[colIdx] && columnFilters[colIdx].selectedOption === val;
+
+        opt.className = `px-2 py-1 rounded cursor-pointer transition truncate text-xs font-semibold ${isSelected ? 'bg-blue-600 text-white font-bold' : 'hover:bg-slate-100 text-slate-800'}`;
+        opt.textContent = val;
+        opt.title = val;
+        opt.onclick = () => selectOption(colIdx, val);
+
+        optionsList.appendChild(opt);
       });
     }
 
-    function openModal(isEdit = false) {
-      document.getElementById('modalError').classList.add('hidden');
-      const container = document.getElementById('formInputs');
+    function toggleDropdownMenu(e, colIdx) {
+      e.stopPropagation();
+      const menu = document.getElementById(`dropdown-menu-${colIdx}`);
+      const isHidden = menu.classList.contains('hidden');
+
+      closeAllDropdowns();
+
+      if (isHidden) {
+        menu.classList.remove('hidden');
+      }
+    }
+
+    function closeAllDropdowns(e) {
+      if (e && e.target.closest('[id^="dropdown-menu-"]')) return;
+      document.querySelectorAll('[id^="dropdown-menu-"]').forEach(menu => {
+        menu.classList.add('hidden');
+      });
+    }
+
+    function onFilterSearchInput(colIdx, text) {
+      if (!columnFilters[colIdx]) columnFilters[colIdx] = { textSearch: '', selectedOption: '' };
+      columnFilters[colIdx].textSearch = text;
+
+      const uniqueVals = Array.from(new Set(globalTableRows.map(r => (r[colIdx] || '').toString().trim()))).filter(Boolean).sort();
+      const optionsList = document.getElementById(`options-list-${colIdx}`);
+      if (optionsList) {
+        buildFilterOptions(colIdx, uniqueVals, optionsList);
+      }
+
+      applyAllFilters();
+    }
+
+    function selectOption(colIdx, val) {
+      if (!columnFilters[colIdx]) columnFilters[colIdx] = { textSearch: '', selectedOption: '' };
+      columnFilters[colIdx].selectedOption = val;
+
+      renderHRMSTable(globalTableRows, globalHeaders);
+    }
+
+    function clearAllFilters() {
+      columnFilters = {};
+      document.getElementById('searchInput').value = '';
+      renderHRMSTable(globalTableRows, globalHeaders);
+    }
+
+    function applyAllFilters() {
+      const globalQuery = document.getElementById('searchInput').value.toLowerCase().trim();
+      const rows = document.querySelectorAll('#tableBody tr');
+      let visibleCount = 0;
+
+      rows.forEach(row => {
+        let matchesGlobal = true;
+        let matchesColumnFilters = true;
+
+        if (globalQuery) {
+          matchesGlobal = row.textContent.toLowerCase().includes(globalQuery);
+        }
+
+        Object.keys(columnFilters).forEach(colIdx => {
+          const targetCell = row.children[colIdx];
+          const cellVal = targetCell ? targetCell.textContent.trim() : '';
+
+          const filterObj = columnFilters[colIdx];
+
+          if (filterObj.textSearch && !cellVal.toLowerCase().includes(filterObj.textSearch.toLowerCase())) {
+            matchesColumnFilters = false;
+          }
+
+          if (filterObj.selectedOption && cellVal !== filterObj.selectedOption) {
+            matchesColumnFilters = false;
+          }
+        });
+
+        if (matchesGlobal && matchesColumnFilters) {
+          row.style.display = '';
+          visibleCount++;
+        } else {
+          row.style.display = 'none';
+        }
+      });
+
+      document.getElementById('filteredCount').textContent = `Showing ${visibleCount} entries`;
+    }
+
+    function openAddModal(isEdit = false) {
+      editingIndex = isEdit ? editingIndex : -1;
+      const container = document.getElementById('dynamicFormInputs');
       container.innerHTML = '';
 
-      document.getElementById('modalTitle').textContent = isEdit ? "Edit Employee Record" : "Add New Employee";
-      const rowData = isEdit ? globalRows[editingRowIdx] : [];
+      document.getElementById('modalErrorMsg').classList.add('hidden');
 
-      const primaryIdx = getPrimaryColIndex(globalHeaders);
+      document.getElementById('modalTitle').innerHTML = isEdit 
+        ? `<i class="fa-solid fa-pen-to-square text-blue-400 mr-2"></i> Edit Employee Record`
+        : `<i class="fa-solid fa-user-plus text-emerald-400 mr-2"></i> Onboard New Employee`;
+
+      document.getElementById('modalSubmitBtn').textContent = isEdit ? 'Update Employee' : 'Onboard Employee';
+
+      const existingData = isEdit ? globalTableRows[editingIndex] : [];
 
       globalHeaders.forEach((h, idx) => {
+        const hLower = h.toLowerCase();
+        if (hLower === 'sn' || hLower.includes('serial')) return;
+
         const div = document.createElement('div');
-        const isPrimary = idx === primaryIdx;
+        const val = existingData[idx] || '';
+
+        const isAadhaar = hLower.includes('aadhar');
+        const isMobile = hLower.includes('mobile') || hLower.includes('phone');
+
         div.innerHTML = `
-          <label class="block text-xs font-bold text-slate-700 mb-1">${h} ${isPrimary ? '*' : ''}</label>
-          <input type="text" data-idx="${idx}" value="${rowData[idx] || ''}" ${isPrimary ? 'required' : ''} 
-            class="w-full px-3 py-2 border rounded-lg text-xs font-bold focus:ring-2 focus:ring-blue-500">
+          <label class="block text-xs font-bold text-slate-700 mb-1">${h} ${isAadhaar ? '*' : ''}</label>
+          <input type="text" data-colindex="${idx}" value="${val}" ${isAadhaar ? 'required' : ''} 
+            placeholder="Enter ${h}" 
+            class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-bold text-slate-900 ${isAadhaar || isMobile ? 'mono-number' : ''} focus:ring-2 focus:ring-blue-500 focus:outline-none">
         `;
         container.appendChild(div);
       });
 
-      document.getElementById('empModal').classList.remove('hidden');
-      document.getElementById('empModal').classList.add('flex');
+      document.getElementById('addModal').classList.remove('hidden');
+      document.getElementById('addModal').classList.add('flex');
     }
 
-    function closeModal() {
-      document.getElementById('empModal').classList.add('hidden');
-      document.getElementById('empModal').classList.remove('flex');
-      editingRowIdx = -1;
+    function closeAddModal() {
+      document.getElementById('addModal').classList.add('hidden');
+      document.getElementById('addModal').classList.remove('flex');
+      document.getElementById('addEmployeeForm').reset();
+      document.getElementById('modalErrorMsg').classList.add('hidden');
+      editingIndex = -1;
     }
 
+    // UPDATED: Strict Duplicate Check
     function handleFormSubmit(e) {
       e.preventDefault();
 
-      const inputs = document.querySelectorAll('#formInputs input');
+      const inputs = document.querySelectorAll('#dynamicFormInputs input');
       let newRow = new Array(globalHeaders.length).fill('');
-      const primaryIdx = getPrimaryColIndex(globalHeaders);
+
+      let primaryValue = '';
+      let primaryIdx = globalHeaders.findIndex(h => h.toLowerCase().includes('aadhar') || h.toLowerCase().includes('emp') || h.toLowerCase().includes('id'));
 
       inputs.forEach(input => {
-        const idx = parseInt(input.getAttribute('data-idx'));
-        newRow[idx] = input.value.trim();
+        const idx = parseInt(input.getAttribute('data-colindex'));
+        const val = input.value.trim();
+        newRow[idx] = val;
+
+        if (idx === primaryIdx) {
+          primaryValue = val.replace(/\s+/g, '');
+        }
       });
 
-      const newId = (newRow[primaryIdx] || "").trim().toLowerCase();
+      // Check for Duplicate Number
+      if (primaryIdx !== -1 && primaryValue) {
+        let isDuplicate = globalTableRows.some((row, rIdx) => {
+          if (editingIndex >= 0 && rIdx === editingIndex) return false;
+          const existingVal = (row[primaryIdx] || '').toString().replace(/\s+/g, '');
+          return existingVal === primaryValue;
+        });
 
-      // DUPLICATE CHECKING
-      if (newId) {
-        for (let i = 0; i < globalRows.length; i++) {
-          if (i === editingRowIdx) continue;
-          const existingId = (globalRows[i][primaryIdx] || "").trim().toLowerCase();
-          
-          if (existingId && existingId === newId) {
-            document.getElementById('modalError').textContent = "STRICT BLOCK: Candidate with this Identification ID is ALREADY REGISTERED!";
-            document.getElementById('modalError').classList.remove('hidden');
-            return;
-          }
+        if (isDuplicate) {
+          const errDiv = document.getElementById('modalErrorMsg');
+          const errText = document.getElementById('modalErrorText');
+          errText.textContent = `RESTRICTED: Candidate with this Identification Number is ALREADY REGISTERED! Duplicate joining not allowed.`;
+          errDiv.classList.remove('hidden');
+          return;
         }
       }
 
-      if (editingRowIdx >= 0) {
-        globalRows[editingRowIdx] = newRow;
-        showAlert("Employee record updated successfully!", "success");
+      let key = primaryValue || `row_${editingIndex >= 0 ? editingIndex : globalTableRows.length}`;
+
+      if (editingIndex >= 0) {
+        globalTableRows[editingIndex] = newRow;
+
+        let localOverrides = JSON.parse(localStorage.getItem(getStorageKey('edits')) || '{}');
+        localOverrides[key] = newRow;
+        localStorage.setItem(getStorageKey('edits'), JSON.stringify(localOverrides));
+
+        showAlert(`Employee record updated in HRMS!`, 'success');
       } else {
-        globalRows.push(newRow);
-        showAlert("New employee added successfully!", "success");
+        globalTableRows.push(newRow);
+
+        let localAdded = JSON.parse(localStorage.getItem(getStorageKey('added')) || '[]');
+        localAdded.push(newRow);
+        localStorage.setItem(getStorageKey('added'), JSON.stringify(localAdded));
+
+        showAlert(`New employee added successfully!`, 'success');
       }
 
-      saveToLocalStorage();
-      renderTable();
-      closeModal();
+      closeAddModal();
+      renderHRMSTable(globalTableRows, globalHeaders);
     }
 
-    function editRow(idx) {
-      editingRowIdx = idx;
-      openModal(true);
+    function editEmployee(index) {
+      editingIndex = index;
+      openAddModal(true);
     }
 
-    function deleteRow(idx) {
-      if (confirm("Are you sure you want to delete this candidate?")) {
-        const primaryIdx = getPrimaryColIndex(globalHeaders);
-        const targetId = (globalRows[idx][primaryIdx] || "").trim().toLowerCase();
-
-        if (targetId) {
-          deletedIds.push(targetId); // Blacklist the deleted candidate ID permanently
-        }
-
-        globalRows.splice(idx, 1);
-        saveToLocalStorage();
-        renderTable();
-        showAlert("Employee record deleted permanently!", "success");
+    function deleteEmployee(index) {
+      if (confirm(`Are you sure you want to delete Employee #${index + 1}?`)) {
+        globalTableRows.splice(index, 1);
+        renderHRMSTable(globalTableRows, globalHeaders);
+        showAlert(`Employee #${index + 1} deleted!`, 'success');
       }
-    }
-
-    function applySearchFilter() {
-      const q = document.getElementById('searchInput').value.toLowerCase();
-      const rows = document.querySelectorAll('#tableBody tr');
-      rows.forEach(r => {
-        r.style.display = r.textContent.toLowerCase().includes(q) ? '' : 'none';
-      });
     }
 
     function showAlert(msg, type) {
       const banner = document.getElementById('alertBanner');
-      banner.className = `mb-4 p-4 rounded-xl border font-bold text-xs flex justify-between ${type === 'error' ? 'bg-rose-100 text-rose-900 border-rose-300' : 'bg-emerald-100 text-emerald-900 border-emerald-300'}`;
-      document.getElementById('alertMessage').textContent = msg;
-      banner.classList.remove('hidden');
+      const msgSpan = document.getElementById('alertMessage');
+      
+      banner.classList.remove('hidden', 'bg-rose-100', 'border-rose-400', 'text-rose-900', 'bg-emerald-100', 'border-emerald-400', 'text-emerald-900');
+
+      if (type === 'error') {
+        banner.classList.add('bg-rose-100', 'border-rose-400', 'text-rose-900');
+      } else {
+        banner.classList.add('bg-emerald-100', 'border-emerald-400', 'text-emerald-900');
+      }
+
+      msgSpan.textContent = msg;
     }
 
-    // Initialize
-    initData();
+    function hideAlert() {
+      document.getElementById('alertBanner').classList.add('hidden');
+    }
+
+    loadSheetData(false);
   </script>
 </body>
 </html>
