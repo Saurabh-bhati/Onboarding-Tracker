@@ -4,11 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PW Offroll HRMS</title>
-  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@600;700&display=swap" rel="stylesheet">
 
   <style>
@@ -26,7 +23,6 @@
 <body class="bg-slate-100 text-slate-900 antialiased h-screen overflow-hidden">
 
   <div class="flex h-full">
-    <!-- Sidebar -->
     <aside class="w-64 bg-slate-950 text-slate-200 flex flex-col justify-between p-5 shadow-2xl z-20">
       <div>
         <div class="flex items-center gap-3 px-2 py-3 mb-6 border-b border-slate-800">
@@ -65,7 +61,6 @@
       </div>
     </aside>
 
-    <!-- Main Content -->
     <main class="flex-1 flex flex-col h-full overflow-hidden">
       
       <header class="bg-white border-b border-slate-300 px-8 py-4 flex justify-between items-center shadow-sm z-10">
@@ -92,7 +87,6 @@
 
       <div class="flex-1 p-8 overflow-hidden flex flex-col bg-slate-100">
 
-        <!-- Stat Cards -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-6">
           <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-300 flex items-center gap-4">
             <div class="p-3.5 bg-blue-100 text-blue-700 rounded-xl">
@@ -130,7 +124,6 @@
           <button onclick="hideAlert()" class="text-lg font-bold ml-4">&times;</button>
         </div>
 
-        <!-- Table Container -->
         <div class="bg-white rounded-2xl shadow-sm border border-slate-300 flex-1 flex flex-col overflow-hidden">
           
           <div class="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
@@ -167,7 +160,6 @@
     </main>
   </div>
 
-  <!-- Modal -->
   <div id="addModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-xl overflow-hidden border border-slate-300 flex flex-col max-h-[90vh]">
       <div class="bg-slate-950 text-white px-6 py-4 flex justify-between items-center shrink-0">
@@ -197,7 +189,8 @@
     let activeTab = 'hr';
     let globalHeaders = [];
     let globalTableRows = [];
-    let activeColumnFilters = {};
+    let activeColumnDropdowns = {};
+    let activeColumnSearch = {};
     let editingIndex = -1;
 
     function getStorageKey(key) {
@@ -206,7 +199,8 @@
 
     function switchTab(tab) {
       activeTab = tab;
-      activeColumnFilters = {};
+      activeColumnDropdowns = {};
+      activeColumnSearch = {};
       
       const btnHR = document.getElementById('btnHR');
       const btnOps = document.getElementById('btnOps');
@@ -351,23 +345,34 @@
       statCols.textContent = headers.length;
       statTotal.textContent = rows.length;
 
-      // Build Headers with Column Filters
+      // Build Headers with Dropdown & Text Search Filters
       headers.forEach((headerText, colIdx) => {
         const th = document.createElement('th');
-        th.className = "px-4 py-3 border-b border-slate-300 font-extrabold text-slate-900 text-left whitespace-nowrap bg-slate-200";
+        th.className = "px-4 py-2 border-b border-slate-300 font-extrabold text-slate-900 text-left whitespace-nowrap bg-slate-200 align-top";
 
-        // Collect unique values for this column
         const uniqueVals = Array.from(new Set(rows.map(r => (r[colIdx] || '').toString().trim()))).filter(Boolean).sort();
 
-        const container = document.createElement('div');
-        container.className = "flex items-center justify-between gap-2";
+        const flexBox = document.createElement('div');
+        flexBox.className = "flex flex-col gap-1.5";
 
         const titleSpan = document.createElement('span');
         titleSpan.textContent = headerText || 'Field';
 
+        const filterControls = document.createElement('div');
+        filterControls.className = "flex items-center gap-1";
+
+        // Text Search input for spelling check
+        const searchInput = document.createElement('input');
+        searchInput.type = "text";
+        searchInput.placeholder = "Type search...";
+        searchInput.className = "w-24 border border-slate-300 text-slate-900 text-[10px] font-semibold rounded px-1.5 py-0.5 outline-none focus:ring-1 focus:ring-blue-500 bg-white";
+        searchInput.value = activeColumnSearch[colIdx] || '';
+        searchInput.oninput = (e) => onColumnSearchChange(colIdx, e.target.value);
+
+        // Dropdown select
         const filterSelect = document.createElement('select');
-        filterSelect.className = "bg-white border border-slate-300 text-slate-800 text-[10px] font-bold rounded px-1 py-0.5 outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer";
-        filterSelect.onchange = (e) => onColumnFilterChange(colIdx, e.target.value);
+        filterSelect.className = "w-16 border border-slate-300 text-slate-800 text-[10px] font-bold rounded px-1 py-0.5 outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer bg-white";
+        filterSelect.onchange = (e) => onColumnDropdownChange(colIdx, e.target.value);
 
         let defaultOpt = document.createElement('option');
         defaultOpt.value = "";
@@ -377,23 +382,26 @@
         uniqueVals.forEach(val => {
           let opt = document.createElement('option');
           opt.value = val;
-          opt.textContent = val.length > 20 ? val.substring(0, 18) + '...' : val;
+          opt.textContent = val.length > 18 ? val.substring(0, 16) + '...' : val;
           filterSelect.appendChild(opt);
         });
 
-        if (activeColumnFilters[colIdx]) {
-          filterSelect.value = activeColumnFilters[colIdx];
+        if (activeColumnDropdowns[colIdx]) {
+          filterSelect.value = activeColumnDropdowns[colIdx];
           filterSelect.classList.add('bg-blue-100', 'text-blue-900', 'border-blue-500');
         }
 
-        container.appendChild(titleSpan);
-        container.appendChild(filterSelect);
-        th.appendChild(container);
+        filterControls.appendChild(searchInput);
+        filterControls.appendChild(filterSelect);
+
+        flexBox.appendChild(titleSpan);
+        flexBox.appendChild(filterControls);
+        th.appendChild(flexBox);
         tableHead.appendChild(th);
       });
 
       const actionTh = document.createElement('th');
-      actionTh.className = "px-4 py-3 border-b border-slate-300 font-extrabold text-slate-900 text-center whitespace-nowrap bg-slate-200";
+      actionTh.className = "px-4 py-2 border-b border-slate-300 font-extrabold text-slate-900 text-center whitespace-nowrap bg-slate-200 align-top";
       actionTh.textContent = "ACTIONS";
       tableHead.appendChild(actionTh);
 
@@ -443,17 +451,28 @@
       applyAllFilters();
     }
 
-    function onColumnFilterChange(colIdx, val) {
+    function onColumnDropdownChange(colIdx, val) {
       if (val === "") {
-        delete activeColumnFilters[colIdx];
+        delete activeColumnDropdowns[colIdx];
       } else {
-        activeColumnFilters[colIdx] = val;
+        activeColumnDropdowns[colIdx] = val;
+      }
+      applyAllFilters();
+    }
+
+    function onColumnSearchChange(colIdx, val) {
+      const query = val.toLowerCase().trim();
+      if (query === "") {
+        delete activeColumnSearch[colIdx];
+      } else {
+        activeColumnSearch[colIdx] = query;
       }
       applyAllFilters();
     }
 
     function clearAllFilters() {
-      activeColumnFilters = {};
+      activeColumnDropdowns = {};
+      activeColumnSearch = {};
       document.getElementById('searchInput').value = '';
       renderHRMSTable(globalTableRows, globalHeaders);
     }
@@ -465,23 +484,33 @@
 
       rows.forEach(row => {
         let matchesGlobal = true;
-        let matchesColumns = true;
+        let matchesDropdowns = true;
+        let matchesTextSearch = true;
 
         // Global Search
         if (globalQuery) {
           matchesGlobal = row.textContent.toLowerCase().includes(globalQuery);
         }
 
-        // Column Specific Filters
-        Object.keys(activeColumnFilters).forEach(colIdx => {
+        // Column Dropdown Filters
+        Object.keys(activeColumnDropdowns).forEach(colIdx => {
           const targetCell = row.children[colIdx];
           const cellVal = targetCell ? targetCell.textContent.trim() : '';
-          if (cellVal !== activeColumnFilters[colIdx]) {
-            matchesColumns = false;
+          if (cellVal !== activeColumnDropdowns[colIdx]) {
+            matchesDropdowns = false;
           }
         });
 
-        if (matchesGlobal && matchesColumns) {
+        // Column Text Search (Spelling check filter)
+        Object.keys(activeColumnSearch).forEach(colIdx => {
+          const targetCell = row.children[colIdx];
+          const cellVal = targetCell ? targetCell.textContent.toLowerCase().trim() : '';
+          if (!cellVal.includes(activeColumnSearch[colIdx])) {
+            matchesTextSearch = false;
+          }
+        });
+
+        if (matchesGlobal && matchesDropdowns && matchesTextSearch) {
           row.style.display = '';
           visibleCount++;
         } else {
