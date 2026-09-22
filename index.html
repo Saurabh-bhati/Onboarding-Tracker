@@ -264,7 +264,6 @@
         localStorage.removeItem(getStorageKey('edits'));
       }
 
-      // Hard Cache-Busting Parameters
       const timestamp = new Date().getTime();
       const randomNonce = Math.random().toString(36).substring(2);
       const targetUrl = csvUrls[activeTab] + `&nocache=${timestamp}_${randomNonce}`;
@@ -287,7 +286,7 @@
         tableWrapper.classList.remove('hidden');
 
         if (forceRefresh) {
-          showAlert(' 100% Live Google Sheet Data Fetched!', 'success');
+          showAlert('100% Live Google Sheet Data Fetched!', 'success');
         }
       } catch (err) {
         showAlert('Failed to fetch updated Sheet data.', 'error');
@@ -329,7 +328,6 @@
       sheetRows.forEach((sRow, idx) => {
         let uniqueKey = (primaryIdx !== -1 && sRow[primaryIdx]) ? sRow[primaryIdx].replace(/\s+/g, '') : `row_${idx}`;
 
-        // Keep local manual edits if user edited directly in HRMS and forceRefresh is false
         if (localOverrides[uniqueKey] && !forceRefresh) {
           mergedRows.push(localOverrides[uniqueKey]);
         } else {
@@ -536,7 +534,7 @@
         localOverrides[key] = newRow;
         localStorage.setItem(getStorageKey('edits'), JSON.stringify(localOverrides));
 
-        showAlert(` Employee record updated in HRMS!`, 'success');
+        showAlert(`Employee record updated in HRMS!`, 'success');
       } else {
         globalTableRows.push(newRow);
 
@@ -544,7 +542,7 @@
         localAdded.push(newRow);
         localStorage.setItem(getStorageKey('added'), JSON.stringify(localAdded));
 
-        showAlert(` New employee added to HRMS!`, 'success');
+        showAlert(`New employee added to HRMS!`, 'success');
       }
 
       closeAddModal();
@@ -560,7 +558,7 @@
       if (confirm(`Are you sure you want to delete Employee #${index + 1}?`)) {
         globalTableRows.splice(index, 1);
         renderHRMSTable(globalTableRows, globalHeaders);
-        showAlert(` Employee #${index + 1} deleted!`, 'success');
+        showAlert(`Employee #${index + 1} deleted!`, 'success');
       }
     }
 
