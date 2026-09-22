@@ -61,7 +61,7 @@
           </span>
           100% Accurate Sync Active
         </div>
-        <p class="text-[11px] text-slate-400 font-medium mt-1">Direct Stream No-Cache Engine</p>
+        <p class="text-[11px] text-slate-400 font-medium mt-1">Direct Stream Engine</p>
       </div>
     </aside>
 
@@ -77,7 +77,7 @@
         <div class="flex items-center gap-3">
           <div class="relative w-72">
             <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
-            <input type="text" id="searchInput" oninput="filterTable()" placeholder="Search Name, ID, Mobile..." class="w-full pl-9 pr-4 py-2 bg-slate-100 border border-slate-300 rounded-lg text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <input type="text" id="searchInput" oninput="applyAllFilters()" placeholder="Global Search (Name, ID, Mobile...)" class="w-full pl-9 pr-4 py-2 bg-slate-100 border border-slate-300 rounded-lg text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
           </div>
 
           <button onclick="openAddModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-xs font-extrabold flex items-center gap-2 shadow-sm transition">
@@ -120,7 +120,7 @@
             </div>
             <div>
               <p class="text-xs font-bold uppercase text-slate-500 tracking-wider">System Accuracy</p>
-              <h3 class="text-base font-black text-emerald-700 mt-0.5">100% Live Sync Verified</h3>
+              <h3 class="text-base font-black text-emerald-700 mt-0.5">100% Column Filter Sync</h3>
             </div>
           </div>
         </div>
@@ -140,15 +140,10 @@
             </div>
             
             <div class="flex items-center gap-3">
-              <div class="flex items-center gap-2">
-                <i class="fa-solid fa-filter text-slate-500 text-xs"></i>
-                <label for="columnFilter" class="text-xs font-bold text-slate-700">Filter By Column:</label>
-                <select id="columnFilter" onchange="filterTable()" class="bg-white border border-slate-300 text-slate-900 text-xs rounded-lg px-3 py-1.5 font-bold focus:outline-none focus:ring-2 focus:ring-blue-500">
-                  <option value="ALL">All Headings</option>
-                </select>
-              </div>
-
-              <span id="filteredCount" class="text-xs font-bold text-slate-700 bg-slate-200 px-3 py-1 rounded-full">Showing entries</span>
+              <button onclick="clearAllFilters()" class="text-xs font-bold text-rose-600 hover:text-rose-800 bg-rose-50 hover:bg-rose-100 px-3 py-1.5 rounded-lg border border-rose-200 transition flex items-center gap-1.5">
+                <i class="fa-solid fa-filter-circle-xmark"></i> Clear Filters
+              </button>
+              <span id="filteredCount" class="text-xs font-bold text-slate-700 bg-slate-200 px-3 py-1.5 rounded-full">Showing entries</span>
             </div>
           </div>
 
@@ -202,6 +197,7 @@
     let activeTab = 'hr';
     let globalHeaders = [];
     let globalTableRows = [];
+    let activeColumnFilters = {};
     let editingIndex = -1;
 
     function getStorageKey(key) {
@@ -210,6 +206,7 @@
 
     function switchTab(tab) {
       activeTab = tab;
+      activeColumnFilters = {};
       
       const btnHR = document.getElementById('btnHR');
       const btnOps = document.getElementById('btnOps');
@@ -297,7 +294,6 @@
       if (!rawData || rawData.length === 0) return;
 
       let originalHeaders = rawData[0].map(h => (h || '').toString().trim());
-      
       let validIndices = [];
       let headers = [];
 
@@ -319,15 +315,12 @@
       }
 
       const primaryIdx = globalHeaders.findIndex(h => h.toLowerCase().includes('aadhar') || h.toLowerCase().includes('emp') || h.toLowerCase().includes('id'));
-
       let localOverrides = JSON.parse(localStorage.getItem(getStorageKey('edits')) || '{}');
       let localAdded = JSON.parse(localStorage.getItem(getStorageKey('added')) || '[]');
-
       let mergedRows = [];
 
       sheetRows.forEach((sRow, idx) => {
         let uniqueKey = (primaryIdx !== -1 && sRow[primaryIdx]) ? sRow[primaryIdx].replace(/\s+/g, '') : `row_${idx}`;
-
         if (localOverrides[uniqueKey] && !forceRefresh) {
           mergedRows.push(localOverrides[uniqueKey]);
         } else {
@@ -343,7 +336,6 @@
       });
 
       globalTableRows = mergedRows;
-      populateHeadingFilter(headers);
       renderHRMSTable(globalTableRows, globalHeaders);
     }
 
@@ -359,10 +351,44 @@
       statCols.textContent = headers.length;
       statTotal.textContent = rows.length;
 
-      headers.forEach((header) => {
+      // Build Headers with Column Filters
+      headers.forEach((headerText, colIdx) => {
         const th = document.createElement('th');
         th.className = "px-4 py-3 border-b border-slate-300 font-extrabold text-slate-900 text-left whitespace-nowrap bg-slate-200";
-        th.textContent = header || 'Field';
+
+        // Collect unique values for this column
+        const uniqueVals = Array.from(new Set(rows.map(r => (r[colIdx] || '').toString().trim()))).filter(Boolean).sort();
+
+        const container = document.createElement('div');
+        container.className = "flex items-center justify-between gap-2";
+
+        const titleSpan = document.createElement('span');
+        titleSpan.textContent = headerText || 'Field';
+
+        const filterSelect = document.createElement('select');
+        filterSelect.className = "bg-white border border-slate-300 text-slate-800 text-[10px] font-bold rounded px-1 py-0.5 outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer";
+        filterSelect.onchange = (e) => onColumnFilterChange(colIdx, e.target.value);
+
+        let defaultOpt = document.createElement('option');
+        defaultOpt.value = "";
+        defaultOpt.textContent = "All";
+        filterSelect.appendChild(defaultOpt);
+
+        uniqueVals.forEach(val => {
+          let opt = document.createElement('option');
+          opt.value = val;
+          opt.textContent = val.length > 20 ? val.substring(0, 18) + '...' : val;
+          filterSelect.appendChild(opt);
+        });
+
+        if (activeColumnFilters[colIdx]) {
+          filterSelect.value = activeColumnFilters[colIdx];
+          filterSelect.classList.add('bg-blue-100', 'text-blue-900', 'border-blue-500');
+        }
+
+        container.appendChild(titleSpan);
+        container.appendChild(filterSelect);
+        th.appendChild(container);
         tableHead.appendChild(th);
       });
 
@@ -414,53 +440,56 @@
         tableBody.appendChild(tr);
       });
 
-      filterTable();
+      applyAllFilters();
     }
 
-    function populateHeadingFilter(headers) {
-      const filterSelect = document.getElementById('columnFilter');
-      const currentSelected = filterSelect.value;
-      filterSelect.innerHTML = '<option value="ALL">All Headings</option>';
-
-      headers.forEach((h, idx) => {
-        const opt = document.createElement('option');
-        opt.value = idx;
-        opt.textContent = h;
-        filterSelect.appendChild(opt);
-      });
-
-      if (currentSelected !== "") {
-        filterSelect.value = currentSelected;
+    function onColumnFilterChange(colIdx, val) {
+      if (val === "") {
+        delete activeColumnFilters[colIdx];
+      } else {
+        activeColumnFilters[colIdx] = val;
       }
+      applyAllFilters();
     }
 
-    function filterTable() {
-      const query = document.getElementById('searchInput').value.toLowerCase().trim();
-      const colFilterVal = document.getElementById('columnFilter').value;
+    function clearAllFilters() {
+      activeColumnFilters = {};
+      document.getElementById('searchInput').value = '';
+      renderHRMSTable(globalTableRows, globalHeaders);
+    }
+
+    function applyAllFilters() {
+      const globalQuery = document.getElementById('searchInput').value.toLowerCase().trim();
       const rows = document.querySelectorAll('#tableBody tr');
-      let count = 0;
+      let visibleCount = 0;
 
       rows.forEach(row => {
-        let isMatch = false;
+        let matchesGlobal = true;
+        let matchesColumns = true;
 
-        if (colFilterVal === 'ALL') {
-          isMatch = row.textContent.toLowerCase().includes(query);
-        } else {
-          const colIndex = parseInt(colFilterVal);
-          const targetCell = row.children[colIndex];
-          const cellText = targetCell ? targetCell.textContent.toLowerCase() : '';
-          isMatch = cellText.includes(query);
+        // Global Search
+        if (globalQuery) {
+          matchesGlobal = row.textContent.toLowerCase().includes(globalQuery);
         }
 
-        if (isMatch) {
+        // Column Specific Filters
+        Object.keys(activeColumnFilters).forEach(colIdx => {
+          const targetCell = row.children[colIdx];
+          const cellVal = targetCell ? targetCell.textContent.trim() : '';
+          if (cellVal !== activeColumnFilters[colIdx]) {
+            matchesColumns = false;
+          }
+        });
+
+        if (matchesGlobal && matchesColumns) {
           row.style.display = '';
-          count++;
+          visibleCount++;
         } else {
           row.style.display = 'none';
         }
       });
 
-      document.getElementById('filteredCount').textContent = `Showing ${count} entries`;
+      document.getElementById('filteredCount').textContent = `Showing ${visibleCount} entries`;
     }
 
     function openAddModal(isEdit = false) {
