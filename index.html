@@ -4,11 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PW Offroll HRMS</title>
-  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@600;700&display=swap" rel="stylesheet">
 
   <style>
@@ -23,10 +20,9 @@
     }
   </style>
 </head>
-<body class="bg-slate-100 text-slate-900 antialiased h-screen overflow-hidden">
+<body class="bg-slate-100 text-slate-900 antialiased h-screen overflow-hidden" onclick="closeAllFilterPopups(event)">
 
   <div class="flex h-full">
-    <!-- Sidebar -->
     <aside class="w-64 bg-slate-950 text-slate-200 flex flex-col justify-between p-5 shadow-2xl z-20">
       <div>
         <div class="flex items-center gap-3 px-2 py-3 mb-6 border-b border-slate-800">
@@ -59,13 +55,12 @@
             <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
             <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
           </span>
-          100% Accurate Sync Active
+          Local Override Active
         </div>
-        <p class="text-[11px] text-slate-400 font-medium mt-1">Direct Stream No-Cache Engine</p>
+        <p class="text-[11px] text-slate-400 font-medium mt-1">HRMS Client-side Memory Engine</p>
       </div>
     </aside>
 
-    <!-- Main Content -->
     <main class="flex-1 flex flex-col h-full overflow-hidden">
       
       <header class="bg-white border-b border-slate-300 px-8 py-4 flex justify-between items-center shadow-sm z-10">
@@ -77,7 +72,7 @@
         <div class="flex items-center gap-3">
           <div class="relative w-72">
             <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
-            <input type="text" id="searchInput" oninput="filterTable()" placeholder="Search Name, ID, Mobile..." class="w-full pl-9 pr-4 py-2 bg-slate-100 border border-slate-300 rounded-lg text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <input type="text" id="searchInput" oninput="applyFiltersAndRender()" placeholder="Global Search (Name, ID, Mobile...)" class="w-full pl-9 pr-4 py-2 bg-slate-100 border border-slate-300 rounded-lg text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
           </div>
 
           <button onclick="openAddModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-xs font-extrabold flex items-center gap-2 shadow-sm transition">
@@ -85,14 +80,13 @@
           </button>
 
           <button onclick="loadSheetData(true)" class="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2 shadow-sm transition">
-            <i class="fa-solid fa-bolt text-amber-400"></i> Force Sync Sheet
+            <i class="fa-solid fa-rotate text-amber-400"></i> Force Sync Sheet
           </button>
         </div>
       </header>
 
       <div class="flex-1 p-8 overflow-hidden flex flex-col bg-slate-100">
 
-        <!-- Stat Cards -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-6">
           <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-300 flex items-center gap-4">
             <div class="p-3.5 bg-blue-100 text-blue-700 rounded-xl">
@@ -119,8 +113,8 @@
               <i class="fa-solid fa-shield-check text-2xl"></i>
             </div>
             <div>
-              <p class="text-xs font-bold uppercase text-slate-500 tracking-wider">System Accuracy</p>
-              <h3 class="text-base font-black text-emerald-700 mt-0.5">100% Live Sync Verified</h3>
+              <p class="text-xs font-bold uppercase text-slate-500 tracking-wider">Cache Protection</p>
+              <h3 class="text-base font-black text-emerald-700 mt-0.5">Active (No Fluctuation)</h3>
             </div>
           </div>
         </div>
@@ -130,7 +124,6 @@
           <button onclick="hideAlert()" class="text-lg font-bold ml-4">&times;</button>
         </div>
 
-        <!-- Table Container -->
         <div class="bg-white rounded-2xl shadow-sm border border-slate-300 flex-1 flex flex-col overflow-hidden">
           
           <div class="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
@@ -140,24 +133,19 @@
             </div>
             
             <div class="flex items-center gap-3">
-              <div class="flex items-center gap-2">
-                <i class="fa-solid fa-filter text-slate-500 text-xs"></i>
-                <label for="columnFilter" class="text-xs font-bold text-slate-700">Filter By Column:</label>
-                <select id="columnFilter" onchange="filterTable()" class="bg-white border border-slate-300 text-slate-900 text-xs rounded-lg px-3 py-1.5 font-bold focus:outline-none focus:ring-2 focus:ring-blue-500">
-                  <option value="ALL">All Headings</option>
-                </select>
-              </div>
-
+              <button onclick="clearAllColumnFilters()" class="text-xs font-extrabold text-rose-600 hover:text-rose-800 bg-rose-50 border border-rose-200 px-3 py-1 rounded-lg transition flex items-center gap-1.5">
+                <i class="fa-solid fa-filter-circle-xmark"></i> Clear Column Filters
+              </button>
               <span id="filteredCount" class="text-xs font-bold text-slate-700 bg-slate-200 px-3 py-1 rounded-full">Showing entries</span>
             </div>
           </div>
 
           <div id="loader" class="flex-1 flex flex-col items-center justify-center p-8">
             <div class="w-10 h-10 border-4 border-blue-600/30 border-t-blue-600 rounded-full animate-spin mb-3"></div>
-            <p class="text-xs font-bold text-slate-600">Syncing live data from Google Sheets...</p>
+            <p class="text-xs font-bold text-slate-600">Fetching live data from Google Sheet...</p>
           </div>
 
-          <div id="tableWrapper" class="flex-1 overflow-auto custom-scrollbar hidden">
+          <div id="tableWrapper" class="flex-1 overflow-auto custom-scrollbar hidden relative">
             <table class="w-full text-left border-collapse" id="hrmsTable">
               <thead class="bg-slate-200 text-slate-900 uppercase text-[11px] tracking-wider font-extrabold sticky top-0 z-10 border-b border-slate-300">
                 <tr id="tableHead"></tr>
@@ -172,7 +160,6 @@
     </main>
   </div>
 
-  <!-- Modal -->
   <div id="addModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-xl overflow-hidden border border-slate-300 flex flex-col max-h-[90vh]">
       <div class="bg-slate-950 text-white px-6 py-4 flex justify-between items-center shrink-0">
@@ -193,8 +180,8 @@
 
   <script>
     const csvUrls = {
-      hr: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR6DAT9uKgT8hruMlMEhJZE2X0O2Rm0g1YqkrkOXv0KSGkwdFqzAK5jRdxpDlvS_xQmwsf5EVTqC3Z-/pub?gid=622384515&single=true&output=csv',
-      ops: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR6DAT9uKgT8hruMlMEhJZE2X0O2Rm0g1YqkrkOXv0KSGkwdFqzAK5jRdxpDlvS_xQmwsf5EVTqC3Z-/pub?gid=0&single=true&output=csv'
+      hr: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT5qK-vFp321zQYy6WTo1J3DkY2oXyP_s5fS2Qx4k/pub?gid=0&single=true&output=csv',
+      ops: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vT5qK-vFp321zQYy6WTo1J3DkY2oXyP_s5fS2Qx4k/pub?gid=1054366627&single=true&output=csv'
     };
 
     const excludedColumns = ["selection remarks", "shift", "status"];
@@ -204,12 +191,16 @@
     let globalTableRows = [];
     let editingIndex = -1;
 
+    // Filters state for each column heading
+    let columnFilters = {}; 
+
     function getStorageKey(key) {
       return `hrms_data_${activeTab}_${key}`;
     }
 
     function switchTab(tab) {
       activeTab = tab;
+      columnFilters = {};
       
       const btnHR = document.getElementById('btnHR');
       const btnOps = document.getElementById('btnOps');
@@ -229,30 +220,6 @@
       loadSheetData(false);
     }
 
-    function parseCSV(text) {
-      let p = '', c = '', r = [];
-      let q = false;
-      let row = [''];
-      for (let i = 0; i < text.length; i++) {
-        c = text[i];
-        let next = text[i+1];
-        if (c === '"') {
-          if (q && next === '"') { row[row.length - 1] += '"'; i++; }
-          else { q = !q; }
-        } else if (c === ',' && !q) {
-          row.push('');
-        } else if ((c === '\r' || c === '\n') && !q) {
-          if (c === '\r' && next === '\n') { i++; }
-          r.push(row);
-          row = [''];
-        } else {
-          row[row.length - 1] += c;
-        }
-      }
-      if (row.length > 1 || row[0] !== '') { r.push(row); }
-      return r;
-    }
-
     async function loadSheetData(forceRefresh = false) {
       const loader = document.getElementById('loader');
       const tableWrapper = document.getElementById('tableWrapper');
@@ -260,44 +227,31 @@
       loader.classList.remove('hidden');
       tableWrapper.classList.add('hidden');
 
-      if (forceRefresh) {
-        localStorage.removeItem(getStorageKey('edits'));
-      }
-
-      // Hard Cache-Busting Parameters
-      const timestamp = new Date().getTime();
-      const randomNonce = Math.random().toString(36).substring(2);
-      const targetUrl = csvUrls[activeTab] + `&nocache=${timestamp}_${randomNonce}`;
+      const baseUrl = csvUrls[activeTab];
+      const fetchUrl = `${baseUrl}&_cb=${new Date().getTime()}_${Math.random().toString(36).substring(7)}`;
 
       try {
-        const response = await fetch(targetUrl, {
-          method: 'GET',
-          cache: 'no-store',
-          headers: {
-            'Pragma': 'no-cache',
-            'Cache-Control': 'no-cache, no-store, must-revalidate'
-          }
-        });
-
+        const response = await fetch(fetchUrl, { cache: 'no-store' });
         const csvText = await response.text();
-        const rawData = parseCSV(csvText);
-        processRawArrayData(rawData, forceRefresh);
+
+        processCSVData(csvText, forceRefresh);
 
         loader.classList.add('hidden');
         tableWrapper.classList.remove('hidden');
 
         if (forceRefresh) {
-          showAlert(' 100% Live Google Sheet Data Fetched!', 'success');
+          showAlert(' Sheet Synced Successfully!', 'success');
         }
       } catch (err) {
-        showAlert('Failed to fetch updated Sheet data.', 'error');
+        showAlert('Failed to fetch data from Google Sheet.', 'error');
       }
     }
 
-    function processRawArrayData(rawData, forceRefresh) {
-      if (!rawData || rawData.length === 0) return;
+    function processCSVData(csvText, forceRefresh) {
+      const lines = parseCSV(csvText);
+      if (lines.length === 0) return;
 
-      let originalHeaders = rawData[0].map(h => (h || '').toString().trim());
+      let originalHeaders = lines[0].map(h => h.trim());
       
       let validIndices = [];
       let headers = [];
@@ -312,10 +266,10 @@
       globalHeaders = headers;
       
       let sheetRows = [];
-      for (let i = 1; i < rawData.length; i++) {
-        let fullRow = rawData[i];
-        if (!fullRow || fullRow.length === 0 || (fullRow.length === 1 && fullRow[0].trim() === '')) continue;
-        let filteredRow = validIndices.map(idx => (fullRow[idx] !== undefined ? fullRow[idx] : '').toString().trim());
+      for (let i = 1; i < lines.length; i++) {
+        let fullRow = lines[i];
+        if (fullRow.length === 0 || (fullRow.length === 1 && fullRow[0] === '')) continue;
+        let filteredRow = validIndices.map(idx => fullRow[idx] !== undefined ? fullRow[idx].trim() : '');
         sheetRows.push(filteredRow);
       }
 
@@ -329,8 +283,7 @@
       sheetRows.forEach((sRow, idx) => {
         let uniqueKey = (primaryIdx !== -1 && sRow[primaryIdx]) ? sRow[primaryIdx].replace(/\s+/g, '') : `row_${idx}`;
 
-        // Keep local manual edits if user edited directly in HRMS and forceRefresh is false
-        if (localOverrides[uniqueKey] && !forceRefresh) {
+        if (localOverrides[uniqueKey]) {
           mergedRows.push(localOverrides[uniqueKey]);
         } else {
           mergedRows.push(sRow);
@@ -345,26 +298,55 @@
       });
 
       globalTableRows = mergedRows;
-      populateHeadingFilter(headers);
-      renderHRMSTable(globalTableRows, globalHeaders);
+      renderHRMSTable();
     }
 
-    function renderHRMSTable(rows, headers) {
+    function renderHRMSTable() {
       const tableHead = document.getElementById('tableHead');
-      const tableBody = document.getElementById('tableBody');
       const statTotal = document.getElementById('statTotal');
       const statCols = document.getElementById('statCols');
 
       tableHead.innerHTML = '';
-      tableBody.innerHTML = '';
+      statCols.textContent = globalHeaders.length;
+      statTotal.textContent = globalTableRows.length;
 
-      statCols.textContent = headers.length;
-      statTotal.textContent = rows.length;
-
-      headers.forEach((header) => {
+      // Build Headers with Google Sheet-style Filter Buttons
+      globalHeaders.forEach((header, colIdx) => {
         const th = document.createElement('th');
-        th.className = "px-4 py-3 border-b border-slate-300 font-extrabold text-slate-900 text-left whitespace-nowrap bg-slate-200";
-        th.textContent = header || 'Field';
+        th.className = "px-4 py-3 border-b border-slate-300 font-extrabold text-slate-900 text-left whitespace-nowrap bg-slate-200 relative group";
+
+        const isFiltered = columnFilters[colIdx] && columnFilters[colIdx].length > 0;
+
+        th.innerHTML = `
+          <div class="flex items-center justify-between gap-2">
+            <span>${header || 'Field'}</span>
+            <button onclick="toggleFilterPopup(event, ${colIdx})" class="p-1 text-xs rounded hover:bg-slate-300 transition ${isFiltered ? 'text-blue-600 font-black' : 'text-slate-500'}">
+              <i class="fa-solid ${isFiltered ? 'fa-filter text-blue-600' : 'fa-filter text-slate-400'}"></i>
+            </button>
+          </div>
+          <div id="filterPopup_${colIdx}" class="filter-popup hidden absolute top-full left-0 mt-1 w-60 bg-white rounded-xl shadow-2xl border border-slate-300 p-3 z-50 normal-case font-medium text-xs text-slate-800">
+            <div class="font-bold text-slate-900 pb-2 border-b border-slate-200 flex justify-between items-center">
+              <span>Filter: ${header}</span>
+              <button onclick="clearSingleColumnFilter(event, ${colIdx})" class="text-[10px] text-rose-600 font-bold hover:underline">Reset</button>
+            </div>
+            
+            <div class="my-2">
+              <input type="text" oninput="filterCheckboxList(event, ${colIdx})" placeholder="Search values..." class="w-full px-2.5 py-1.5 border border-slate-300 rounded-md text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 font-bold">
+            </div>
+
+            <div class="flex justify-between items-center my-1 text-[11px] font-bold text-blue-600">
+              <button onclick="selectAllCheckboxes(${colIdx}, true)" class="hover:underline">Select All</button>
+              <button onclick="selectAllCheckboxes(${colIdx}, false)" class="hover:underline text-slate-500">Clear All</button>
+            </div>
+
+            <div id="checkboxList_${colIdx}" class="max-h-36 overflow-y-auto custom-scrollbar my-2 space-y-1.5 border-t border-b border-slate-100 py-2">
+              </div>
+
+            <div class="flex justify-end gap-2 pt-2">
+              <button onclick="applyColumnFilter(${colIdx})" class="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-md text-xs shadow-sm">Apply</button>
+            </div>
+          </div>
+        `;
         tableHead.appendChild(th);
       });
 
@@ -373,98 +355,175 @@
       actionTh.textContent = "ACTIONS";
       tableHead.appendChild(actionTh);
 
-      const snIdx = headers.findIndex(h => h.toLowerCase() === 'sn' || h.toLowerCase().includes('serial'));
-
-      rows.forEach((row, rowIndex) => {
-        const tr = document.createElement('tr');
-        tr.className = "hover:bg-slate-200/60 transition border-b border-slate-200 text-slate-900 font-bold";
-
-        row.forEach((cellVal, colIdx) => {
-          const td = document.createElement('td');
-          let val = (cellVal || '').toString().trim();
-          const colName = (headers[colIdx] || '').toLowerCase();
-
-          if (colIdx === snIdx || colName === 'sn') {
-            val = (rowIndex + 1).toString();
-            row[colIdx] = val;
-          }
-
-          const isNumberOrId = /^\d+$/.test(val) || colName.includes('aadhar') || colName.includes('mobile') || colName.includes('emp');
-
-          if (isNumberOrId) {
-            td.className = "px-4 py-3.5 whitespace-nowrap mono-number text-left tracking-wider text-slate-950 font-bold bg-slate-50/50";
-          } else {
-            td.className = "px-4 py-3.5 whitespace-nowrap text-left text-slate-900 font-bold";
-          }
-
-          td.textContent = val || '-';
-          tr.appendChild(td);
-        });
-
-        const actionTd = document.createElement('td');
-        actionTd.className = "px-4 py-3.5 whitespace-nowrap text-center space-x-2";
-        actionTd.innerHTML = `
-          <button onclick="editEmployee(${rowIndex})" class="p-1.5 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg text-xs transition" title="Edit Employee">
-            <i class="fa-solid fa-pen-to-square"></i>
-          </button>
-          <button onclick="deleteEmployee(${rowIndex})" class="p-1.5 bg-rose-100 hover:bg-rose-200 text-rose-700 rounded-lg text-xs transition" title="Delete Employee">
-            <i class="fa-solid fa-trash"></i>
-          </button>
-        `;
-        tr.appendChild(actionTd);
-
-        tableBody.appendChild(tr);
-      });
-
-      filterTable();
+      applyFiltersAndRender();
     }
 
-    function populateHeadingFilter(headers) {
-      const filterSelect = document.getElementById('columnFilter');
-      const currentSelected = filterSelect.value;
-      filterSelect.innerHTML = '<option value="ALL">All Headings</option>';
+    function applyFiltersAndRender() {
+      const tableBody = document.getElementById('tableBody');
+      const searchQuery = document.getElementById('searchInput').value.toLowerCase().trim();
+      tableBody.innerHTML = '';
 
-      headers.forEach((h, idx) => {
-        const opt = document.createElement('option');
-        opt.value = idx;
-        opt.textContent = h;
-        filterSelect.appendChild(opt);
+      const snIdx = globalHeaders.findIndex(h => h.toLowerCase() === 'sn' || h.toLowerCase().includes('serial'));
+
+      let visibleCount = 0;
+
+      globalTableRows.forEach((row, rowIndex) => {
+        let isVisible = true;
+
+        // 1. Global Search Filter
+        if (searchQuery) {
+          const rowText = row.join(' ').toLowerCase();
+          if (!rowText.includes(searchQuery)) {
+            isVisible = false;
+          }
+        }
+
+        // 2. Google Sheets-style Column Filters
+        if (isVisible) {
+          for (let colIdx in columnFilters) {
+            const allowedValues = columnFilters[colIdx];
+            if (allowedValues && allowedValues.length > 0) {
+              const cellVal = (row[colIdx] || '').toString().trim();
+              if (!allowedValues.includes(cellVal)) {
+                isVisible = false;
+                break;
+              }
+            }
+          }
+        }
+
+        if (isVisible) {
+          visibleCount++;
+          const tr = document.createElement('tr');
+          tr.className = "hover:bg-slate-200/60 transition border-b border-slate-200 text-slate-900 font-bold";
+
+          row.forEach((cellVal, colIdx) => {
+            const td = document.createElement('td');
+            let val = (cellVal || '').toString().trim();
+            const colName = (globalHeaders[colIdx] || '').toLowerCase();
+
+            if (colIdx === snIdx || colName === 'sn') {
+              val = (visibleCount).toString();
+            }
+
+            const isNumberOrId = /^\d+$/.test(val) || colName.includes('aadhar') || colName.includes('mobile') || colName.includes('emp');
+
+            if (isNumberOrId) {
+              td.className = "px-4 py-3.5 whitespace-nowrap mono-number text-left tracking-wider text-slate-950 font-bold bg-slate-50/50";
+            } else {
+              td.className = "px-4 py-3.5 whitespace-nowrap text-left text-slate-900 font-bold";
+            }
+
+            td.textContent = val || '-';
+            tr.appendChild(td);
+          });
+
+          const actionTd = document.createElement('td');
+          actionTd.className = "px-4 py-3.5 whitespace-nowrap text-center space-x-2";
+          actionTd.innerHTML = `
+            <button onclick="editEmployee(${rowIndex})" class="p-1.5 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg text-xs transition" title="Edit Employee">
+              <i class="fa-solid fa-pen-to-square"></i>
+            </button>
+            <button onclick="deleteEmployee(${rowIndex})" class="p-1.5 bg-rose-100 hover:bg-rose-200 text-rose-700 rounded-lg text-xs transition" title="Delete Employee">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          `;
+          tr.appendChild(actionTd);
+
+          tableBody.appendChild(tr);
+        }
       });
 
-      if (currentSelected !== "") {
-        filterSelect.value = currentSelected;
+      document.getElementById('filteredCount').textContent = `Showing ${visibleCount} entries`;
+    }
+
+    // Interactive Google Sheet Filter Menu Functions
+    function toggleFilterPopup(event, colIdx) {
+      event.stopPropagation();
+      const popup = document.getElementById(`filterPopup_${colIdx}`);
+      const isHidden = popup.classList.contains('hidden');
+
+      closeAllFilterPopups();
+
+      if (isHidden) {
+        populateColumnCheckboxes(colIdx);
+        popup.classList.remove('hidden');
       }
     }
 
-    function filterTable() {
-      const query = document.getElementById('searchInput').value.toLowerCase().trim();
-      const colFilterVal = document.getElementById('columnFilter').value;
-      const rows = document.querySelectorAll('#tableBody tr');
-      let count = 0;
-
-      rows.forEach(row => {
-        let isMatch = false;
-
-        if (colFilterVal === 'ALL') {
-          isMatch = row.textContent.toLowerCase().includes(query);
-        } else {
-          const colIndex = parseInt(colFilterVal);
-          const targetCell = row.children[colIndex];
-          const cellText = targetCell ? targetCell.textContent.toLowerCase() : '';
-          isMatch = cellText.includes(query);
-        }
-
-        if (isMatch) {
-          row.style.display = '';
-          count++;
-        } else {
-          row.style.display = 'none';
-        }
-      });
-
-      document.getElementById('filteredCount').textContent = `Showing ${count} entries`;
+    function closeAllFilterPopups(event) {
+      if (event && event.target.closest('.filter-popup')) return;
+      document.querySelectorAll('.filter-popup').forEach(p => p.classList.add('hidden'));
     }
 
+    function populateColumnCheckboxes(colIdx) {
+      const container = document.getElementById(`checkboxList_${colIdx}`);
+      container.innerHTML = '';
+
+      let uniqueValues = new Set();
+      globalTableRows.forEach(row => {
+        let val = (row[colIdx] || '').toString().trim();
+        uniqueValues.add(val || '(Blanks)');
+      });
+
+      let sortedValues = Array.from(uniqueValues).sort();
+      let selectedValues = columnFilters[colIdx] || sortedValues;
+
+      sortedValues.forEach(val => {
+        const isChecked = selectedValues.includes(val);
+        const label = document.createElement('label');
+        label.className = "flex items-center gap-2 px-1 py-0.5 hover:bg-slate-100 rounded cursor-pointer select-none text-slate-800 font-semibold";
+        label.innerHTML = `
+          <input type="checkbox" value="${val}" ${isChecked ? 'checked' : ''} class="rounded text-blue-600 focus:ring-blue-500 font-bold">
+          <span class="truncate">${val}</span>
+        `;
+        container.appendChild(label);
+      });
+    }
+
+    function filterCheckboxList(event, colIdx) {
+      const q = event.target.value.toLowerCase();
+      const labels = document.querySelectorAll(`#checkboxList_${colIdx} label`);
+      labels.forEach(l => {
+        const text = l.textContent.toLowerCase();
+        l.style.display = text.includes(q) ? 'flex' : 'none';
+      });
+    }
+
+    function selectAllCheckboxes(colIdx, check) {
+      const checkboxes = document.querySelectorAll(`#checkboxList_${colIdx} input[type="checkbox"]`);
+      checkboxes.forEach(cb => {
+        if (cb.parentElement.style.display !== 'none') {
+          cb.checked = check;
+        }
+      });
+    }
+
+    function applyColumnFilter(colIdx) {
+      const checkboxes = document.querySelectorAll(`#checkboxList_${colIdx} input[type="checkbox"]`);
+      let selected = [];
+      checkboxes.forEach(cb => {
+        if (cb.checked) selected.push(cb.value);
+      });
+
+      columnFilters[colIdx] = selected;
+      closeAllFilterPopups();
+      renderHRMSTable();
+    }
+
+    function clearSingleColumnFilter(event, colIdx) {
+      event.stopPropagation();
+      delete columnFilters[colIdx];
+      closeAllFilterPopups();
+      renderHRMSTable();
+    }
+
+    function clearAllColumnFilters() {
+      columnFilters = {};
+      renderHRMSTable();
+    }
+
+    // Modal & Form Handlers
     function openAddModal(isEdit = false) {
       editingIndex = isEdit ? editingIndex : -1;
       const container = document.getElementById('dynamicFormInputs');
@@ -548,7 +607,7 @@
       }
 
       closeAddModal();
-      renderHRMSTable(globalTableRows, globalHeaders);
+      renderHRMSTable();
     }
 
     function editEmployee(index) {
@@ -559,9 +618,50 @@
     function deleteEmployee(index) {
       if (confirm(`Are you sure you want to delete Employee #${index + 1}?`)) {
         globalTableRows.splice(index, 1);
-        renderHRMSTable(globalTableRows, globalHeaders);
+        renderHRMSTable();
         showAlert(` Employee #${index + 1} deleted!`, 'success');
       }
+    }
+
+    function parseCSV(text) {
+      let lines = [];
+      let row = [];
+      let inQuotes = false;
+      let currentVal = '';
+
+      for (let i = 0; i < text.length; i++) {
+        let char = text[i];
+        let nextChar = text[i + 1];
+
+        if (char === '"') {
+          if (inQuotes && nextChar === '"') {
+            currentVal += '"';
+            i++;
+          } else {
+            inQuotes = !inQuotes;
+          }
+        } else if (char === ',' && !inQuotes) {
+          row.push(currentVal);
+          currentVal = '';
+        } else if ((char === '\r' || char === '\n') && !inQuotes) {
+          if (char === '\r' && nextChar === '\n') {
+            i++;
+          }
+          row.push(currentVal);
+          lines.push(row);
+          row = [];
+          currentVal = '';
+        } else {
+          currentVal += char;
+        }
+      }
+
+      if (currentVal || row.length > 0) {
+        row.push(currentVal);
+        lines.push(row);
+      }
+
+      return lines;
     }
 
     function showAlert(msg, type) {
