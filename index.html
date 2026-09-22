@@ -13,20 +13,17 @@
     .custom-scrollbar::-webkit-scrollbar { height: 8px; width: 8px; }
     .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
     .custom-scrollbar::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 4px; }
-    .mono-number {
-      font-family: 'JetBrains Mono', monospace;
-      font-weight: 600;
-      letter-spacing: 0.05em;
-    }
+    .mono-number { font-family: 'JetBrains Mono', monospace; font-weight: 600; }
   </style>
 </head>
 <body class="bg-slate-100 text-slate-900 antialiased h-screen overflow-hidden">
 
   <div class="flex h-full">
+    <!-- Sidebar -->
     <aside class="w-64 bg-slate-950 text-slate-200 flex flex-col justify-between p-5 shadow-2xl z-20">
       <div>
         <div class="flex items-center gap-3 px-2 py-3 mb-6 border-b border-slate-800">
-          <div class="bg-blue-600 text-white p-2.5 rounded-xl shadow-lg shadow-blue-600/40">
+          <div class="bg-blue-600 text-white p-2.5 rounded-xl shadow-lg">
             <i class="fa-solid fa-users-gear text-xl"></i>
           </div>
           <div>
@@ -37,12 +34,12 @@
 
         <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider px-3 mb-3">Dashboards</div>
         <nav class="space-y-2">
-          <button onclick="switchTab('hr')" id="btnHR" class="w-full text-left flex items-center justify-between p-3 rounded-xl bg-blue-600 text-white font-bold shadow-md transition-all duration-200">
+          <button onclick="switchTab('hr')" id="btnHR" class="w-full text-left flex items-center justify-between p-3 rounded-xl bg-blue-600 text-white font-bold transition-all">
             <span class="flex items-center gap-3"><i class="fa-solid fa-warehouse text-lg"></i> Warehouse Onboarding</span>
             <i class="fa-solid fa-chevron-right text-xs opacity-70"></i>
           </button>
           
-          <button onclick="switchTab('ops')" id="btnOps" class="w-full text-left flex items-center justify-between p-3 rounded-xl hover:bg-slate-900 text-slate-400 hover:text-slate-100 font-bold transition-all duration-200">
+          <button onclick="switchTab('ops')" id="btnOps" class="w-full text-left flex items-center justify-between p-3 rounded-xl hover:bg-slate-900 text-slate-400 hover:text-slate-100 font-bold transition-all">
             <span class="flex items-center gap-3"><i class="fa-solid fa-print text-lg"></i> Printing Press Onboarding</span>
             <i class="fa-solid fa-chevron-right text-xs opacity-70"></i>
           </button>
@@ -55,12 +52,13 @@
             <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
             <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
           </span>
-          Local Override Active
+          System Online
         </div>
-        <p class="text-[11px] text-slate-400 font-medium mt-1">HRMS Client-side Memory Engine</p>
+        <p class="text-[11px] text-slate-400 font-medium mt-1">HRMS Real-time Data Sync</p>
       </div>
     </aside>
 
+    <!-- Main Content -->
     <main class="flex-1 flex flex-col h-full overflow-hidden">
       
       <header class="bg-white border-b border-slate-300 px-8 py-4 flex justify-between items-center shadow-sm z-10">
@@ -72,14 +70,14 @@
         <div class="flex items-center gap-3">
           <div class="relative w-72">
             <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
-            <input type="text" id="searchInput" oninput="applyFilters()" placeholder="Global Search (Name, ID, Mobile...)" class="w-full pl-9 pr-4 py-2 bg-slate-100 border border-slate-300 rounded-lg text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <input type="text" id="searchInput" oninput="applyFilters()" placeholder="Global Search (Name, ID, Mobile...)" class="w-full pl-9 pr-4 py-2 bg-slate-100 border border-slate-300 rounded-lg text-xs font-bold focus:outline-none focus:ring-2 focus:ring-blue-500">
           </div>
 
-          <button onclick="openAddModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-xs font-extrabold flex items-center gap-2 shadow-sm transition">
+          <button onclick="openAddModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-xs font-extrabold flex items-center gap-2 transition">
             <i class="fa-solid fa-user-plus"></i> Add Employee
           </button>
 
-          <button onclick="loadSheetData(true)" class="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2 shadow-sm transition">
+          <button onclick="loadSheetData(true)" class="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2 transition">
             <i class="fa-solid fa-rotate text-amber-400"></i> Force Sync Sheet
           </button>
         </div>
@@ -87,6 +85,7 @@
 
       <div class="flex-1 p-8 overflow-hidden flex flex-col bg-slate-100">
 
+        <!-- Stat Cards -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-6">
           <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-300 flex items-center gap-4">
             <div class="p-3.5 bg-blue-100 text-blue-700 rounded-xl">
@@ -94,7 +93,7 @@
             </div>
             <div>
               <p class="text-xs font-bold uppercase text-slate-500 tracking-wider">Total Onboarded</p>
-              <h3 id="statTotal" class="text-2xl font-black text-slate-950 mt-0.5">--</h3>
+              <h3 id="statTotal" class="text-2xl font-black text-slate-950 mt-0.5">0</h3>
             </div>
           </div>
 
@@ -104,7 +103,7 @@
             </div>
             <div>
               <p class="text-xs font-bold uppercase text-slate-500 tracking-wider">Total Data Fields</p>
-              <h3 id="statCols" class="text-2xl font-black text-slate-950 mt-0.5">--</h3>
+              <h3 id="statCols" class="text-2xl font-black text-slate-950 mt-0.5">0</h3>
             </div>
           </div>
 
@@ -124,6 +123,7 @@
           <button onclick="hideAlert()" class="text-lg font-bold ml-4">&times;</button>
         </div>
 
+        <!-- Table Container -->
         <div class="bg-white rounded-2xl shadow-sm border border-slate-300 flex-1 flex flex-col overflow-hidden">
           
           <div class="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
@@ -161,6 +161,7 @@
     </main>
   </div>
 
+  <!-- Modal -->
   <div id="addModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-xl overflow-hidden border border-slate-300 flex flex-col max-h-[90vh]">
       <div class="bg-slate-950 text-white px-6 py-4 flex justify-between items-center shrink-0">
@@ -204,12 +205,12 @@
       const tabTitle = document.getElementById('tabTitle');
 
       if (tab === 'hr') {
-        btnHR.className = "w-full text-left flex items-center justify-between p-3 rounded-xl bg-blue-600 text-white font-bold shadow-md transition-all duration-200";
-        btnOps.className = "w-full text-left flex items-center justify-between p-3 rounded-xl hover:bg-slate-900 text-slate-400 hover:text-slate-100 font-bold transition-all duration-200";
+        btnHR.className = "w-full text-left flex items-center justify-between p-3 rounded-xl bg-blue-600 text-white font-bold transition-all";
+        btnOps.className = "w-full text-left flex items-center justify-between p-3 rounded-xl hover:bg-slate-900 text-slate-400 hover:text-slate-100 font-bold transition-all";
         tabTitle.textContent = "Warehouse Onboarding";
       } else {
-        btnOps.className = "w-full text-left flex items-center justify-between p-3 rounded-xl bg-blue-600 text-white font-bold shadow-md transition-all duration-200";
-        btnHR.className = "w-full text-left flex items-center justify-between p-3 rounded-xl hover:bg-slate-900 text-slate-400 hover:text-slate-100 font-bold transition-all duration-200";
+        btnOps.className = "w-full text-left flex items-center justify-between p-3 rounded-xl bg-blue-600 text-white font-bold transition-all";
+        btnHR.className = "w-full text-left flex items-center justify-between p-3 rounded-xl hover:bg-slate-900 text-slate-400 hover:text-slate-100 font-bold transition-all";
         tabTitle.textContent = "Printing Press Onboarding";
       }
 
@@ -225,26 +226,32 @@
       tableWrapper.classList.add('hidden');
 
       const baseUrl = csvUrls[activeTab];
-      const fetchUrl = `${baseUrl}&_cb=${new Date().getTime()}_${Math.random().toString(36).substring(7)}`;
+      const fetchUrl = `${baseUrl}&_cb=${new Date().getTime()}`;
 
       try {
         const response = await fetch(fetchUrl, { cache: 'no-store' });
         const csvText = await response.text();
 
-        processCSVData(csvText, forceRefresh);
+        // Check if fetched data is HTML (Permission Error)
+        if (csvText.trim().toLowerCase().startsWith('<!doctype html') || csvText.trim().toLowerCase().startsWith('<html')) {
+          throw new Error("HTML Response Received. Please publish Google Sheet to Web as CSV.");
+        }
+
+        processCSVData(csvText);
 
         loader.classList.add('hidden');
         tableWrapper.classList.remove('hidden');
 
         if (forceRefresh) {
-          showAlert(' Sheet Synced Successfully!', 'success');
+          showAlert('Sheet Synced Successfully!', 'success');
         }
       } catch (err) {
-        showAlert('Failed to fetch data from Google Sheet.', 'error');
+        loader.classList.add('hidden');
+        showAlert(`Error loading sheet: ${err.message}`, 'error');
       }
     }
 
-    function processCSVData(csvText, forceRefresh) {
+    function processCSVData(csvText) {
       const lines = parseCSV(csvText);
       if (lines.length === 0) return;
 
@@ -270,31 +277,7 @@
         sheetRows.push(filteredRow);
       }
 
-      const primaryIdx = globalHeaders.findIndex(h => h.toLowerCase().includes('aadhar') || h.toLowerCase().includes('emp') || h.toLowerCase().includes('id'));
-
-      let localOverrides = JSON.parse(localStorage.getItem(getStorageKey('edits')) || '{}');
-      let localAdded = JSON.parse(localStorage.getItem(getStorageKey('added')) || '[]');
-
-      let mergedRows = [];
-
-      sheetRows.forEach((sRow, idx) => {
-        let uniqueKey = (primaryIdx !== -1 && sRow[primaryIdx]) ? sRow[primaryIdx].replace(/\s+/g, '') : `row_${idx}`;
-
-        if (localOverrides[uniqueKey]) {
-          mergedRows.push(localOverrides[uniqueKey]);
-        } else {
-          mergedRows.push(sRow);
-        }
-      });
-
-      localAdded.forEach(aRow => {
-        let uniqueKey = (primaryIdx !== -1 && aRow[primaryIdx]) ? aRow[primaryIdx].replace(/\s+/g, '') : null;
-        if (uniqueKey && !mergedRows.some(r => r[primaryIdx] && r[primaryIdx].replace(/\s+/g, '') === uniqueKey)) {
-          mergedRows.push(aRow);
-        }
-      });
-
-      globalTableRows = mergedRows;
+      globalTableRows = sheetRows;
       renderHRMSTable(globalTableRows, globalHeaders);
     }
 
@@ -312,7 +295,7 @@
       statCols.textContent = headers.length;
       statTotal.textContent = rows.length;
 
-      // Header Row & Search Filter Row per Column
+      // Header & Search Filter Input Row
       headers.forEach((header, colIdx) => {
         const th = document.createElement('th');
         th.className = "px-4 py-3 border-b border-slate-300 font-extrabold text-slate-900 text-left whitespace-nowrap bg-slate-200";
@@ -338,33 +321,17 @@
 
       const actionFilterTh = document.createElement('th');
       actionFilterTh.className = "px-2 py-1.5 border-b border-slate-300 bg-slate-100 text-center";
-      actionFilterTh.innerHTML = `<span class="text-[10px] text-slate-400 font-bold uppercase">Filter</span>`;
+      actionFilterTh.innerHTML = `<span class="text-[10px] text-slate-400 font-bold uppercase">Actions</span>`;
       tableFilterHead.appendChild(actionFilterTh);
-
-      const snIdx = headers.findIndex(h => h.toLowerCase() === 'sn' || h.toLowerCase().includes('serial'));
 
       rows.forEach((row, rowIndex) => {
         const tr = document.createElement('tr');
         tr.className = "hover:bg-slate-200/60 transition border-b border-slate-200 text-slate-900 font-bold";
 
-        row.forEach((cellVal, colIdx) => {
+        row.forEach((cellVal) => {
           const td = document.createElement('td');
           let val = (cellVal || '').toString().trim();
-          const colName = (headers[colIdx] || '').toLowerCase();
-
-          if (colIdx === snIdx || colName === 'sn') {
-            val = (rowIndex + 1).toString();
-            row[colIdx] = val;
-          }
-
-          const isNumberOrId = /^\d+$/.test(val) || colName.includes('aadhar') || colName.includes('mobile') || colName.includes('emp');
-
-          if (isNumberOrId) {
-            td.className = "px-4 py-3.5 whitespace-nowrap mono-number text-left tracking-wider text-slate-950 font-bold bg-slate-50/50";
-          } else {
-            td.className = "px-4 py-3.5 whitespace-nowrap text-left text-slate-900 font-bold";
-          }
-
+          td.className = "px-4 py-3.5 whitespace-nowrap text-left text-slate-900 font-bold";
           td.textContent = val || '-';
           tr.appendChild(td);
         });
@@ -396,12 +363,10 @@
       rows.forEach(row => {
         let isMatch = true;
 
-        // 1. Global Header Search
         if (globalQuery && !row.textContent.toLowerCase().includes(globalQuery)) {
           isMatch = false;
         }
 
-        // 2. Individual Column Searches
         if (isMatch) {
           colInputs.forEach(input => {
             const val = input.value.toLowerCase().trim();
@@ -441,7 +406,6 @@
       applyFilters();
     }
 
-    // Modal & Form Functions
     function openAddModal(isEdit = false) {
       editingIndex = isEdit ? editingIndex : -1;
       const container = document.getElementById('dynamicFormInputs');
@@ -456,20 +420,14 @@
       const existingData = isEdit ? globalTableRows[editingIndex] : [];
 
       globalHeaders.forEach((h, idx) => {
-        const hLower = h.toLowerCase();
-        if (hLower === 'sn' || hLower.includes('serial')) return;
-
         const div = document.createElement('div');
         const val = existingData[idx] || '';
 
-        const isAadhaar = hLower.includes('aadhar');
-        const isMobile = hLower.includes('mobile') || hLower.includes('phone');
-
         div.innerHTML = `
-          <label class="block text-xs font-bold text-slate-700 mb-1">${h} ${isAadhaar ? '*' : ''}</label>
-          <input type="text" data-colindex="${idx}" value="${val}" ${isAadhaar ? 'required' : ''} 
+          <label class="block text-xs font-bold text-slate-700 mb-1">${h}</label>
+          <input type="text" data-colindex="${idx}" value="${val}" 
             placeholder="Enter ${h}" 
-            class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-bold text-slate-900 ${isAadhaar || isMobile ? 'mono-number' : ''} focus:ring-2 focus:ring-blue-500 focus:outline-none">
+            class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-bold text-slate-900 focus:ring-2 focus:ring-blue-500 focus:outline-none">
         `;
         container.appendChild(div);
       });
@@ -491,37 +449,17 @@
       const inputs = document.querySelectorAll('#dynamicFormInputs input');
       let newRow = new Array(globalHeaders.length).fill('');
 
-      let primaryValue = '';
-      let primaryIdx = globalHeaders.findIndex(h => h.toLowerCase().includes('aadhar') || h.toLowerCase().includes('emp') || h.toLowerCase().includes('id'));
-
       inputs.forEach(input => {
         const idx = parseInt(input.getAttribute('data-colindex'));
-        const val = input.value.trim();
-        newRow[idx] = val;
-
-        if (idx === primaryIdx) {
-          primaryValue = val.replace(/\s+/g, '');
-        }
+        newRow[idx] = input.value.trim();
       });
-
-      let key = primaryValue || `row_${editingIndex >= 0 ? editingIndex : globalTableRows.length}`;
 
       if (editingIndex >= 0) {
         globalTableRows[editingIndex] = newRow;
-
-        let localOverrides = JSON.parse(localStorage.getItem(getStorageKey('edits')) || '{}');
-        localOverrides[key] = newRow;
-        localStorage.setItem(getStorageKey('edits'), JSON.stringify(localOverrides));
-
-        showAlert(` Employee record updated in HRMS!`, 'success');
+        showAlert('Employee record updated!', 'success');
       } else {
         globalTableRows.push(newRow);
-
-        let localAdded = JSON.parse(localStorage.getItem(getStorageKey('added')) || '[]');
-        localAdded.push(newRow);
-        localStorage.setItem(getStorageKey('added'), JSON.stringify(localAdded));
-
-        showAlert(` New employee added to HRMS!`, 'success');
+        showAlert('New employee added!', 'success');
       }
 
       closeAddModal();
@@ -537,7 +475,7 @@
       if (confirm(`Are you sure you want to delete Employee #${index + 1}?`)) {
         globalTableRows.splice(index, 1);
         renderHRMSTable(globalTableRows, globalHeaders);
-        showAlert(` Employee #${index + 1} deleted!`, 'success');
+        showAlert(`Employee #${index + 1} deleted!`, 'success');
       }
     }
 
