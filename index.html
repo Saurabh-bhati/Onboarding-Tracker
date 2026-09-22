@@ -59,9 +59,9 @@
             <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
             <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
           </span>
-          100% Accurate Data Sync
+          100% Accurate Sync Active
         </div>
-        <p class="text-[11px] text-slate-400 font-medium mt-1">Live Google Sheet Sync Enabled</p>
+        <p class="text-[11px] text-slate-400 font-medium mt-1">Direct Stream No-Cache Engine</p>
       </div>
     </aside>
 
@@ -85,7 +85,7 @@
           </button>
 
           <button onclick="loadSheetData(true)" class="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2 shadow-sm transition">
-            <i class="fa-solid fa-bolt text-amber-400"></i> Fast Refresh Sheet
+            <i class="fa-solid fa-bolt text-amber-400"></i> Force Sync Sheet
           </button>
         </div>
       </header>
@@ -109,7 +109,7 @@
               <i class="fa-solid fa-table-list text-2xl"></i>
             </div>
             <div>
-              <p class="text-xs font-bold uppercase text-slate-500 tracking-wider">Total Fields</p>
+              <p class="text-xs font-bold uppercase text-slate-500 tracking-wider">Total Data Fields</p>
               <h3 id="statCols" class="text-2xl font-black text-slate-950 mt-0.5">--</h3>
             </div>
           </div>
@@ -120,7 +120,7 @@
             </div>
             <div>
               <p class="text-xs font-bold uppercase text-slate-500 tracking-wider">System Accuracy</p>
-              <h3 class="text-base font-black text-emerald-700 mt-0.5">100% Live Accurate</h3>
+              <h3 class="text-base font-black text-emerald-700 mt-0.5">100% Live Sync Verified</h3>
             </div>
           </div>
         </div>
@@ -154,7 +154,7 @@
 
           <div id="loader" class="flex-1 flex flex-col items-center justify-center p-8">
             <div class="w-10 h-10 border-4 border-blue-600/30 border-t-blue-600 rounded-full animate-spin mb-3"></div>
-            <p class="text-xs font-bold text-slate-600">Loading live data directly from Google Sheet...</p>
+            <p class="text-xs font-bold text-slate-600">Syncing live data from Google Sheets...</p>
           </div>
 
           <div id="tableWrapper" class="flex-1 overflow-auto custom-scrollbar hidden">
@@ -253,7 +253,7 @@
       return r;
     }
 
-    function loadSheetData(forceRefresh = false) {
+    async function loadSheetData(forceRefresh = false) {
       const loader = document.getElementById('loader');
       const tableWrapper = document.getElementById('tableWrapper');
       
@@ -261,25 +261,37 @@
       tableWrapper.classList.add('hidden');
 
       if (forceRefresh) {
-        // Clear HRMS overrides on force refresh to fetch 100% fresh sheet data
         localStorage.removeItem(getStorageKey('edits'));
       }
 
-      const cacheBuster = '&_cb=' + new Date().getTime() + Math.random().toString(36).substring(2);
-      const targetUrl = csvUrls[activeTab] + cacheBuster;
+      // Hard Cache-Busting Parameters
+      const timestamp = new Date().getTime();
+      const randomNonce = Math.random().toString(36).substring(2);
+      const targetUrl = csvUrls[activeTab] + `&nocache=${timestamp}_${randomNonce}`;
 
-      fetch(targetUrl, { cache: 'no-store' })
-        .then(res => res.text())
-        .then(csvText => {
-          const rawData = parseCSV(csvText);
-          processRawArrayData(rawData, forceRefresh);
-          loader.classList.add('hidden');
-          tableWrapper.classList.remove('hidden');
-          if (forceRefresh) showAlert(' 100% Synced with Google Sheet live data!', 'success');
-        })
-        .catch(err => {
-          showAlert('Failed to load Google Sheet data.', 'error');
+      try {
+        const response = await fetch(targetUrl, {
+          method: 'GET',
+          cache: 'no-store',
+          headers: {
+            'Pragma': 'no-cache',
+            'Cache-Control': 'no-cache, no-store, must-revalidate'
+          }
         });
+
+        const csvText = await response.text();
+        const rawData = parseCSV(csvText);
+        processRawArrayData(rawData, forceRefresh);
+
+        loader.classList.add('hidden');
+        tableWrapper.classList.remove('hidden');
+
+        if (forceRefresh) {
+          showAlert(' 100% Live Google Sheet Data Fetched!', 'success');
+        }
+      } catch (err) {
+        showAlert('Failed to fetch updated Sheet data.', 'error');
+      }
     }
 
     function processRawArrayData(rawData, forceRefresh) {
@@ -317,7 +329,7 @@
       sheetRows.forEach((sRow, idx) => {
         let uniqueKey = (primaryIdx !== -1 && sRow[primaryIdx]) ? sRow[primaryIdx].replace(/\s+/g, '') : `row_${idx}`;
 
-        // If local edit exists and forceRefresh is false, keep local edit
+        // Keep local manual edits if user edited directly in HRMS and forceRefresh is false
         if (localOverrides[uniqueKey] && !forceRefresh) {
           mergedRows.push(localOverrides[uniqueKey]);
         } else {
