@@ -27,7 +27,7 @@
 
   <div class="flex h-full">
     <!-- Sidebar -->
-    <aside class="w-64 bg-slate-950 text-slate-200 flex flex-col justify-between p-5 shadow-2xl z-20">
+    <aside class="w-64 bg-slate-950 text-slate-200 flex flex-col justify-between p-5 shadow-2xl z-20 shrink-0">
       <div>
         <div class="flex items-center gap-3 px-2 py-3 mb-6 border-b border-slate-800">
           <div class="bg-blue-600 text-white p-2.5 rounded-xl shadow-lg shadow-blue-600/40">
@@ -59,7 +59,7 @@
             <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
             <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
           </span>
-          100% Sync & Persistence Active
+          Duplicate Identification Protection Active
         </div>
         <p class="text-[11px] text-slate-400 font-medium mt-1">Smart Local Overlay Engine</p>
       </div>
@@ -71,13 +71,13 @@
       <header class="bg-white border-b border-slate-300 px-8 py-4 flex justify-between items-center shadow-sm z-10">
         <div>
           <h1 id="tabTitle" class="text-2xl font-black text-slate-950 tracking-tight">Warehouse Onboarding</h1>
-          <p class="text-xs font-semibold text-slate-500 mt-0.5">Real-time onboarding management & employee records</p>
+          <p class="text-xs font-semibold text-slate-500 mt-0.5">Real-time onboarding management & candidate records</p>
         </div>
 
         <div class="flex items-center gap-3">
           <div class="relative w-72">
             <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
-            <input type="text" id="searchInput" oninput="applyAllFilters()" placeholder="Global Search (Name, ID, Mobile...)" class="w-full pl-9 pr-4 py-2 bg-slate-100 border border-slate-300 rounded-lg text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <input type="text" id="searchInput" oninput="applyAllFilters()" placeholder="Global Search (Name, Aadhaar, Phone...)" class="w-full pl-9 pr-4 py-2 bg-slate-100 border border-slate-300 rounded-lg text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
           </div>
 
           <button onclick="openAddModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-xs font-extrabold flex items-center gap-2 shadow-sm transition">
@@ -116,15 +116,16 @@
 
           <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-300 flex items-center gap-4">
             <div class="p-3.5 bg-emerald-100 text-emerald-700 rounded-xl">
-              <i class="fa-solid fa-shield-check text-2xl"></i>
+              <i class="fa-solid fa-id-card-clip text-2xl"></i>
             </div>
             <div>
-              <p class="text-xs font-bold uppercase text-slate-500 tracking-wider">System Security</p>
-              <h3 class="text-base font-black text-emerald-700 mt-0.5">Duplicate Identification Blocked</h3>
+              <p class="text-xs font-bold uppercase text-slate-500 tracking-wider">Verification Status</p>
+              <h3 class="text-base font-black text-emerald-700 mt-0.5">Duplicate Aadhaar Card Blocked</h3>
             </div>
           </div>
         </div>
 
+        <!-- System Notification Banner -->
         <div id="alertBanner" class="hidden mb-4 p-4 rounded-xl border font-bold text-xs flex items-center justify-between">
           <span id="alertMessage"></span>
           <button onclick="hideAlert()" class="text-lg font-bold ml-4">&times;</button>
@@ -176,13 +177,17 @@
       </div>
 
       <form id="addEmployeeForm" onsubmit="handleFormSubmit(event)" class="p-6 overflow-y-auto space-y-4 custom-scrollbar flex-1">
-        <div id="dynamicFormInputs" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
-
-        <!-- Validation Error Message inside Modal -->
-        <div id="modalErrorMsg" class="hidden p-3 bg-rose-100 border border-rose-300 text-rose-800 font-bold text-xs rounded-lg flex items-center gap-2">
-          <i class="fa-solid fa-triangle-exclamation text-rose-600 text-sm"></i>
-          <span id="modalErrorText"></span>
+        
+        <!-- Aadhaar Card Duplicate Warning Banner -->
+        <div id="modalErrorMsg" class="hidden p-3.5 bg-rose-50 border border-rose-300 text-rose-800 font-bold text-xs rounded-xl flex items-start gap-3">
+          <i class="fa-solid fa-id-card text-rose-600 text-base mt-0.5"></i>
+          <div>
+            <p class="font-extrabold uppercase text-[11px] text-rose-900 tracking-wider">Duplicate Aadhaar Card Found</p>
+            <p id="modalErrorText" class="mt-0.5 font-medium text-xs text-rose-700"></p>
+          </div>
         </div>
+
+        <div id="dynamicFormInputs" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
 
         <div class="flex justify-end gap-3 pt-4 border-t border-slate-200 shrink-0">
           <button type="button" onclick="closeAddModal()" class="px-4 py-2 bg-slate-200 text-slate-800 font-bold rounded-lg text-xs hover:bg-slate-300 transition">Cancel</button>
@@ -316,25 +321,21 @@
         sheetRows.push(filteredRow);
       }
 
-      const primaryIdx = globalHeaders.findIndex(h => h.toLowerCase().includes('aadhar') || h.toLowerCase().includes('emp') || h.toLowerCase().includes('id'));
+      const aadhaarIdx = globalHeaders.findIndex(h => h.toLowerCase().includes('aadhar') || h.toLowerCase().includes('emp') || h.toLowerCase().includes('id'));
       
-      // Fetch persisted state from localStorage
       let localOverrides = JSON.parse(localStorage.getItem(getStorageKey('edits')) || '{}');
       let localAdded = JSON.parse(localStorage.getItem(getStorageKey('added')) || '[]');
       let localDeleted = JSON.parse(localStorage.getItem(getStorageKey('deleted')) || '[]');
 
       let mergedRows = [];
 
-      // 1. Process Google Sheet Rows (Apply Edits and Exclude Deleted)
       sheetRows.forEach((sRow, idx) => {
-        let uniqueKey = (primaryIdx !== -1 && sRow[primaryIdx]) ? sRow[primaryIdx].replace(/\s+/g, '') : `row_${idx}`;
+        let uniqueKey = (aadhaarIdx !== -1 && sRow[aadhaarIdx]) ? sRow[aadhaarIdx].replace(/\s+/g, '') : `row_${idx}`;
         
-        // Skip if row was deleted locally
         if (localDeleted.includes(uniqueKey)) {
           return;
         }
 
-        // Apply edit override if exists
         if (localOverrides[uniqueKey]) {
           mergedRows.push(localOverrides[uniqueKey]);
         } else {
@@ -342,15 +343,13 @@
         }
       });
 
-      // 2. Add New HRMS Local Employees
       localAdded.forEach(aRow => {
-        let uniqueKey = (primaryIdx !== -1 && aRow[primaryIdx]) ? aRow[primaryIdx].replace(/\s+/g, '') : null;
+        let uniqueKey = (aadhaarIdx !== -1 && aRow[aadhaarIdx]) ? aRow[aadhaarIdx].replace(/\s+/g, '') : null;
         if (uniqueKey && localDeleted.includes(uniqueKey)) {
-          return; // If added then deleted
+          return;
         }
 
-        if (uniqueKey && !mergedRows.some(r => r[primaryIdx] && r[primaryIdx].replace(/\s+/g, '') === uniqueKey)) {
-          // Apply edit if added row was edited
+        if (uniqueKey && !mergedRows.some(r => r[aadhaarIdx] && r[aadhaarIdx].replace(/\s+/g, '') === uniqueKey)) {
           if (localOverrides[uniqueKey]) {
             mergedRows.push(localOverrides[uniqueKey]);
           } else {
@@ -606,7 +605,7 @@
         const isMobile = hLower.includes('mobile') || hLower.includes('phone');
 
         div.innerHTML = `
-          <label class="block text-xs font-bold text-slate-700 mb-1">${h} ${isAadhaar ? '*' : ''}</label>
+          <label class="block text-xs font-bold text-slate-700 mb-1">${h} ${isAadhaar ? '<span class="text-rose-600 font-extrabold">* (Aadhaar Verification)</span>' : ''}</label>
           <input type="text" data-colindex="${idx}" value="${val}" ${isAadhaar ? 'required' : ''} 
             placeholder="Enter ${h}" 
             class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-bold text-slate-900 ${isAadhaar || isMobile ? 'mono-number' : ''} focus:ring-2 focus:ring-blue-500 focus:outline-none">
@@ -626,44 +625,51 @@
       editingIndex = -1;
     }
 
-    // Submit handler with persistence & deduplication
     function handleFormSubmit(e) {
       e.preventDefault();
 
       const inputs = document.querySelectorAll('#dynamicFormInputs input');
       let newRow = new Array(globalHeaders.length).fill('');
 
-      let primaryValue = '';
-      let primaryIdx = globalHeaders.findIndex(h => h.toLowerCase().includes('aadhar') || h.toLowerCase().includes('emp') || h.toLowerCase().includes('id'));
+      let aadhaarValue = '';
+      let aadhaarIdx = globalHeaders.findIndex(h => h.toLowerCase().includes('aadhar') || h.toLowerCase().includes('emp') || h.toLowerCase().includes('id'));
 
       inputs.forEach(input => {
         const idx = parseInt(input.getAttribute('data-colindex'));
         const val = input.value.trim();
         newRow[idx] = val;
 
-        if (idx === primaryIdx) {
-          primaryValue = val.replace(/\s+/g, '');
+        if (idx === aadhaarIdx) {
+          aadhaarValue = val.replace(/\s+/g, '');
         }
       });
 
-      // Prevent duplicate Primary ID entry
-      if (primaryIdx !== -1 && primaryValue) {
+      // Strict Duplicate Aadhaar Card Validation Check
+      if (aadhaarIdx !== -1 && aadhaarValue) {
+        let duplicateMatch = null;
         let isDuplicate = globalTableRows.some((row, rIdx) => {
           if (editingIndex >= 0 && rIdx === editingIndex) return false;
-          const existingVal = (row[primaryIdx] || '').toString().replace(/\s+/g, '');
-          return existingVal === primaryValue;
+          const existingVal = (row[aadhaarIdx] || '').toString().replace(/\s+/g, '');
+          if (existingVal && existingVal === aadhaarValue) {
+            duplicateMatch = row;
+            return true;
+          }
+          return false;
         });
 
         if (isDuplicate) {
           const errDiv = document.getElementById('modalErrorMsg');
           const errText = document.getElementById('modalErrorText');
-          errText.textContent = `RESTRICTED: Candidate with this Identification Number is ALREADY REGISTERED!`;
+          const nameIdx = globalHeaders.findIndex(h => h.toLowerCase().includes('name'));
+          const candidateName = (nameIdx !== -1 && duplicateMatch && duplicateMatch[nameIdx]) ? duplicateMatch[nameIdx] : 'Existing Candidate';
+
+          errText.innerHTML = `Entered Aadhaar Card number is <strong>ALREADY REGISTERED</strong> in system for candidate: <span class="underline font-bold">${candidateName}</span>. Duplicate entry blocked!`;
           errDiv.classList.remove('hidden');
           return;
         }
       }
 
-      let key = primaryValue || `row_${editingIndex >= 0 ? editingIndex : globalTableRows.length}`;
+      let key = aadhaarValue || `row_${editingIndex >= 0 ? editingIndex : globalTableRows.length}`;
 
       if (editingIndex >= 0) {
         globalTableRows[editingIndex] = newRow;
@@ -672,7 +678,7 @@
         localOverrides[key] = newRow;
         localStorage.setItem(getStorageKey('edits'), JSON.stringify(localOverrides));
 
-        showAlert(`Employee record updated!`, 'success');
+        showAlert(`Employee record updated successfully!`, 'success');
       } else {
         globalTableRows.push(newRow);
 
@@ -680,7 +686,7 @@
         localAdded.push(newRow);
         localStorage.setItem(getStorageKey('added'), JSON.stringify(localAdded));
 
-        showAlert(`New employee added successfully!`, 'success');
+        showAlert(`New employee added successfully after Aadhaar verification!`, 'success');
       }
 
       closeAddModal();
@@ -692,50 +698,54 @@
       openAddModal(true);
     }
 
-    // Persistent Delete Implementation
     function deleteEmployee(index) {
-      const primaryIdx = globalHeaders.findIndex(h => h.toLowerCase().includes('aadhar') || h.toLowerCase().includes('emp') || h.toLowerCase().includes('id'));
+      const aadhaarIdx = globalHeaders.findIndex(h => h.toLowerCase().includes('aadhar') || h.toLowerCase().includes('emp') || h.toLowerCase().includes('id'));
       const targetRow = globalTableRows[index];
 
       if (!targetRow) return;
 
       if (confirm(`Are you sure you want to delete Employee #${index + 1}?`)) {
-        let uniqueKey = (primaryIdx !== -1 && targetRow[primaryIdx]) ? targetRow[primaryIdx].replace(/\s+/g, '') : `row_${index}`;
+        let uniqueKey = (aadhaarIdx !== -1 && targetRow[aadhaarIdx]) ? targetRow[aadhaarIdx].replace(/\s+/g, '') : `row_${index}`;
 
-        // Save deleted identifier into LocalStorage
         let localDeleted = JSON.parse(localStorage.getItem(getStorageKey('deleted')) || '[]');
         if (!localDeleted.includes(uniqueKey)) {
           localDeleted.push(uniqueKey);
           localStorage.setItem(getStorageKey('deleted'), JSON.stringify(localDeleted));
         }
 
-        // Remove from local tables and arrays
         globalTableRows.splice(index, 1);
         renderHRMSTable(globalTableRows, globalHeaders);
-        showAlert(`Employee #${index + 1} deleted and persisted!`, 'success');
+        showAlert(`Employee #${index + 1} deleted successfully!`, 'success');
       }
     }
 
-    function showAlert(msg, type) {
+    function showAlert(message, type = 'info') {
       const banner = document.getElementById('alertBanner');
       const msgSpan = document.getElementById('alertMessage');
       
-      banner.classList.remove('hidden', 'bg-rose-100', 'border-rose-400', 'text-rose-900', 'bg-emerald-100', 'border-emerald-400', 'text-emerald-900');
+      banner.className = `mb-4 p-4 rounded-xl border font-bold text-xs flex items-center justify-between ${
+        type === 'success' 
+          ? 'bg-emerald-50 text-emerald-800 border-emerald-300' 
+          : type === 'error' 
+          ? 'bg-rose-50 text-rose-800 border-rose-300' 
+          : 'bg-blue-50 text-blue-800 border-blue-300'
+      }`;
+      
+      msgSpan.textContent = message;
+      banner.classList.remove('hidden');
 
-      if (type === 'error') {
-        banner.classList.add('bg-rose-100', 'border-rose-400', 'text-rose-900');
-      } else {
-        banner.classList.add('bg-emerald-100', 'border-emerald-400', 'text-emerald-900');
-      }
-
-      msgSpan.textContent = msg;
+      setTimeout(() => {
+        hideAlert();
+      }, 4000);
     }
 
     function hideAlert() {
       document.getElementById('alertBanner').classList.add('hidden');
     }
 
-    loadSheetData(false);
+    document.addEventListener('DOMContentLoaded', () => {
+      loadSheetData(false);
+    });
   </script>
 </body>
 </html>
