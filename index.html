@@ -59,9 +59,9 @@
             <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
             <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
           </span>
-          100% Accurate Sync Active
+          100% Sync & Persistence Active
         </div>
-        <p class="text-[11px] text-slate-400 font-medium mt-1">Direct Stream Engine</p>
+        <p class="text-[11px] text-slate-400 font-medium mt-1">Smart Local Overlay Engine</p>
       </div>
     </aside>
 
@@ -85,7 +85,7 @@
           </button>
 
           <button onclick="loadSheetData(true)" class="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2 shadow-sm transition">
-            <i class="fa-solid fa-bolt text-amber-400"></i> Force Sync Sheet
+            <i class="fa-solid fa-bolt text-amber-400"></i> Refresh Sync
           </button>
         </div>
       </header>
@@ -120,7 +120,7 @@
             </div>
             <div>
               <p class="text-xs font-bold uppercase text-slate-500 tracking-wider">System Security</p>
-              <h3 class="text-base font-black text-emerald-700 mt-0.5">Duplicate Aadhaar Blocked</h3>
+              <h3 class="text-base font-black text-emerald-700 mt-0.5">Duplicate Identification Blocked</h3>
             </div>
           </div>
         </div>
@@ -149,7 +149,7 @@
 
           <div id="loader" class="flex-1 flex flex-col items-center justify-center p-8">
             <div class="w-10 h-10 border-4 border-blue-600/30 border-t-blue-600 rounded-full animate-spin mb-3"></div>
-            <p class="text-xs font-bold text-slate-600">Syncing live data from Google Sheets...</p>
+            <p class="text-xs font-bold text-slate-600">Syncing live data from Google Sheets & Local Cache...</p>
           </div>
 
           <div id="tableWrapper" class="flex-1 overflow-auto custom-scrollbar hidden">
@@ -256,16 +256,12 @@
       return r;
     }
 
-    async function loadSheetData(forceRefresh = false) {
+    async function loadSheetData(userNotified = false) {
       const loader = document.getElementById('loader');
       const tableWrapper = document.getElementById('tableWrapper');
       
       loader.classList.remove('hidden');
       tableWrapper.classList.add('hidden');
-
-      if (forceRefresh) {
-        localStorage.removeItem(getStorageKey('edits'));
-      }
 
       const timestamp = new Date().getTime();
       const randomNonce = Math.random().toString(36).substring(2);
@@ -283,20 +279,20 @@
 
         const csvText = await response.text();
         const rawData = parseCSV(csvText);
-        processRawArrayData(rawData, forceRefresh);
+        processRawArrayData(rawData);
 
         loader.classList.add('hidden');
         tableWrapper.classList.remove('hidden');
 
-        if (forceRefresh) {
-          showAlert('100% Live Google Sheet Data Fetched!', 'success');
+        if (userNotified) {
+          showAlert('Google Sheet Data Synced with HRMS persistence!', 'success');
         }
       } catch (err) {
         showAlert('Failed to fetch updated Sheet data.', 'error');
       }
     }
 
-    function processRawArrayData(rawData, forceRefresh) {
+    function processRawArrayData(rawData) {
       if (!rawData || rawData.length === 0) return;
 
       let originalHeaders = rawData[0].map(h => (h || '').toString().trim());
@@ -321,23 +317,45 @@
       }
 
       const primaryIdx = globalHeaders.findIndex(h => h.toLowerCase().includes('aadhar') || h.toLowerCase().includes('emp') || h.toLowerCase().includes('id'));
+      
+      // Fetch persisted state from localStorage
       let localOverrides = JSON.parse(localStorage.getItem(getStorageKey('edits')) || '{}');
       let localAdded = JSON.parse(localStorage.getItem(getStorageKey('added')) || '[]');
+      let localDeleted = JSON.parse(localStorage.getItem(getStorageKey('deleted')) || '[]');
+
       let mergedRows = [];
 
+      // 1. Process Google Sheet Rows (Apply Edits and Exclude Deleted)
       sheetRows.forEach((sRow, idx) => {
         let uniqueKey = (primaryIdx !== -1 && sRow[primaryIdx]) ? sRow[primaryIdx].replace(/\s+/g, '') : `row_${idx}`;
-        if (localOverrides[uniqueKey] && !forceRefresh) {
+        
+        // Skip if row was deleted locally
+        if (localDeleted.includes(uniqueKey)) {
+          return;
+        }
+
+        // Apply edit override if exists
+        if (localOverrides[uniqueKey]) {
           mergedRows.push(localOverrides[uniqueKey]);
         } else {
           mergedRows.push(sRow);
         }
       });
 
+      // 2. Add New HRMS Local Employees
       localAdded.forEach(aRow => {
         let uniqueKey = (primaryIdx !== -1 && aRow[primaryIdx]) ? aRow[primaryIdx].replace(/\s+/g, '') : null;
+        if (uniqueKey && localDeleted.includes(uniqueKey)) {
+          return; // If added then deleted
+        }
+
         if (uniqueKey && !mergedRows.some(r => r[primaryIdx] && r[primaryIdx].replace(/\s+/g, '') === uniqueKey)) {
-          mergedRows.push(aRow);
+          // Apply edit if added row was edited
+          if (localOverrides[uniqueKey]) {
+            mergedRows.push(localOverrides[uniqueKey]);
+          } else {
+            mergedRows.push(aRow);
+          }
         }
       });
 
@@ -608,7 +626,7 @@
       editingIndex = -1;
     }
 
-    // UPDATED: Strict Duplicate Check
+    // Submit handler with persistence & deduplication
     function handleFormSubmit(e) {
       e.preventDefault();
 
@@ -628,7 +646,7 @@
         }
       });
 
-      // Check for Duplicate Number
+      // Prevent duplicate Primary ID entry
       if (primaryIdx !== -1 && primaryValue) {
         let isDuplicate = globalTableRows.some((row, rIdx) => {
           if (editingIndex >= 0 && rIdx === editingIndex) return false;
@@ -639,7 +657,7 @@
         if (isDuplicate) {
           const errDiv = document.getElementById('modalErrorMsg');
           const errText = document.getElementById('modalErrorText');
-          errText.textContent = `RESTRICTED: Candidate with this Identification Number is ALREADY REGISTERED! Duplicate joining not allowed.`;
+          errText.textContent = `RESTRICTED: Candidate with this Identification Number is ALREADY REGISTERED!`;
           errDiv.classList.remove('hidden');
           return;
         }
@@ -654,7 +672,7 @@
         localOverrides[key] = newRow;
         localStorage.setItem(getStorageKey('edits'), JSON.stringify(localOverrides));
 
-        showAlert(`Employee record updated in HRMS!`, 'success');
+        showAlert(`Employee record updated!`, 'success');
       } else {
         globalTableRows.push(newRow);
 
@@ -674,11 +692,27 @@
       openAddModal(true);
     }
 
+    // Persistent Delete Implementation
     function deleteEmployee(index) {
+      const primaryIdx = globalHeaders.findIndex(h => h.toLowerCase().includes('aadhar') || h.toLowerCase().includes('emp') || h.toLowerCase().includes('id'));
+      const targetRow = globalTableRows[index];
+
+      if (!targetRow) return;
+
       if (confirm(`Are you sure you want to delete Employee #${index + 1}?`)) {
+        let uniqueKey = (primaryIdx !== -1 && targetRow[primaryIdx]) ? targetRow[primaryIdx].replace(/\s+/g, '') : `row_${index}`;
+
+        // Save deleted identifier into LocalStorage
+        let localDeleted = JSON.parse(localStorage.getItem(getStorageKey('deleted')) || '[]');
+        if (!localDeleted.includes(uniqueKey)) {
+          localDeleted.push(uniqueKey);
+          localStorage.setItem(getStorageKey('deleted'), JSON.stringify(localDeleted));
+        }
+
+        // Remove from local tables and arrays
         globalTableRows.splice(index, 1);
         renderHRMSTable(globalTableRows, globalHeaders);
-        showAlert(`Employee #${index + 1} deleted!`, 'success');
+        showAlert(`Employee #${index + 1} deleted and persisted!`, 'success');
       }
     }
 
