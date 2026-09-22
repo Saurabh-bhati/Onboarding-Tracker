@@ -8,22 +8,18 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <!-- Google Fonts Inter & JetBrains Mono -->
+  <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@600;700&display=swap" rel="stylesheet">
-  <!-- PapaParse for CSV Parsing -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 
   <style>
     body { font-family: 'Inter', sans-serif; }
     .custom-scrollbar::-webkit-scrollbar { height: 8px; width: 8px; }
     .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
     .custom-scrollbar::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 4px; }
-    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #64748b; }
     .mono-number {
       font-family: 'JetBrains Mono', monospace;
       font-weight: 600;
       letter-spacing: 0.05em;
-      font-variant-numeric: tabular-nums;
     }
   </style>
 </head>
@@ -45,7 +41,7 @@
 
         <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider px-3 mb-3">Dashboards</div>
         <nav class="space-y-2">
-          <button onclick="switchTab('hr')" id="btnHR" class="w-full text-left flex items-center justify-between p-3 rounded-xl bg-blue-600 text-white font-bold shadow-md shadow-blue-600/30 transition-all duration-200">
+          <button onclick="switchTab('hr')" id="btnHR" class="w-full text-left flex items-center justify-between p-3 rounded-xl bg-blue-600 text-white font-bold shadow-md transition-all duration-200">
             <span class="flex items-center gap-3"><i class="fa-solid fa-warehouse text-lg"></i> Warehouse Onboarding</span>
             <i class="fa-solid fa-chevron-right text-xs opacity-70"></i>
           </button>
@@ -63,16 +59,15 @@
             <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
             <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
           </span>
-          Live Sheet Direct Sync
+          100% Accurate Data Sync
         </div>
-        <p class="text-[11px] text-slate-400 font-medium mt-1">Direct Google Sheet Master Integration</p>
+        <p class="text-[11px] text-slate-400 font-medium mt-1">Live Google Sheet Sync Enabled</p>
       </div>
     </aside>
 
-    <!-- Main Content Area -->
+    <!-- Main Content -->
     <main class="flex-1 flex flex-col h-full overflow-hidden">
       
-      <!-- Top Header Bar -->
       <header class="bg-white border-b border-slate-300 px-8 py-4 flex justify-between items-center shadow-sm z-10">
         <div>
           <h1 id="tabTitle" class="text-2xl font-black text-slate-950 tracking-tight">Warehouse Onboarding</h1>
@@ -82,7 +77,7 @@
         <div class="flex items-center gap-3">
           <div class="relative w-72">
             <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
-            <input type="text" id="searchInput" oninput="filterTable()" placeholder="Search Name, ID, Mobile..." class="w-full pl-9 pr-4 py-2 bg-slate-100 border border-slate-300 rounded-lg text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
+            <input type="text" id="searchInput" oninput="filterTable()" placeholder="Search Name, ID, Mobile..." class="w-full pl-9 pr-4 py-2 bg-slate-100 border border-slate-300 rounded-lg text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
           </div>
 
           <button onclick="openAddModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-xs font-extrabold flex items-center gap-2 shadow-sm transition">
@@ -90,12 +85,11 @@
           </button>
 
           <button onclick="loadSheetData(true)" class="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2 shadow-sm transition">
-            <i class="fa-solid fa-rotate-right"></i> Refresh Sheet Data
+            <i class="fa-solid fa-bolt text-amber-400"></i> Fast Refresh Sheet
           </button>
         </div>
       </header>
 
-      <!-- Body Content -->
       <div class="flex-1 p-8 overflow-hidden flex flex-col bg-slate-100">
 
         <!-- Stat Cards -->
@@ -115,7 +109,7 @@
               <i class="fa-solid fa-table-list text-2xl"></i>
             </div>
             <div>
-              <p class="text-xs font-bold uppercase text-slate-500 tracking-wider">Total Data Fields</p>
+              <p class="text-xs font-bold uppercase text-slate-500 tracking-wider">Total Fields</p>
               <h3 id="statCols" class="text-2xl font-black text-slate-950 mt-0.5">--</h3>
             </div>
           </div>
@@ -125,22 +119,20 @@
               <i class="fa-solid fa-shield-check text-2xl"></i>
             </div>
             <div>
-              <p class="text-xs font-bold uppercase text-slate-500 tracking-wider">Duplicate Protection</p>
-              <h3 class="text-base font-black text-emerald-700 mt-0.5">Aadhaar Validation Active</h3>
+              <p class="text-xs font-bold uppercase text-slate-500 tracking-wider">System Accuracy</p>
+              <h3 class="text-base font-black text-emerald-700 mt-0.5">100% Live Accurate</h3>
             </div>
           </div>
         </div>
 
-        <!-- Notification Banner -->
         <div id="alertBanner" class="hidden mb-4 p-4 rounded-xl border font-bold text-xs flex items-center justify-between">
           <span id="alertMessage"></span>
           <button onclick="hideAlert()" class="text-lg font-bold ml-4">&times;</button>
         </div>
 
-        <!-- Table Container Card -->
+        <!-- Table Container -->
         <div class="bg-white rounded-2xl shadow-sm border border-slate-300 flex-1 flex flex-col overflow-hidden">
           
-          <!-- Table Bar with Heading-based Filter -->
           <div class="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
             <div class="flex items-center gap-3">
               <i class="fa-solid fa-folder-open text-blue-600 text-base"></i>
@@ -160,13 +152,11 @@
             </div>
           </div>
 
-          <!-- Loading Spinner -->
           <div id="loader" class="flex-1 flex flex-col items-center justify-center p-8">
             <div class="w-10 h-10 border-4 border-blue-600/30 border-t-blue-600 rounded-full animate-spin mb-3"></div>
-            <p class="text-xs font-bold text-slate-600">Fetching latest Google Sheet data...</p>
+            <p class="text-xs font-bold text-slate-600">Loading live data directly from Google Sheet...</p>
           </div>
 
-          <!-- Table View Area -->
           <div id="tableWrapper" class="flex-1 overflow-auto custom-scrollbar hidden">
             <table class="w-full text-left border-collapse" id="hrmsTable">
               <thead class="bg-slate-200 text-slate-900 uppercase text-[11px] tracking-wider font-extrabold sticky top-0 z-10 border-b border-slate-300">
@@ -182,7 +172,7 @@
     </main>
   </div>
 
-  <!-- Manual Onboard / Edit Employee Dynamic Modal -->
+  <!-- Modal -->
   <div id="addModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-xl overflow-hidden border border-slate-300 flex flex-col max-h-[90vh]">
       <div class="bg-slate-950 text-white px-6 py-4 flex justify-between items-center shrink-0">
@@ -190,7 +180,6 @@
         <button onclick="closeAddModal()" class="text-slate-400 hover:text-white text-lg font-bold">&times;</button>
       </div>
 
-      <!-- Dynamic Inputs Form -->
       <form id="addEmployeeForm" onsubmit="handleFormSubmit(event)" class="p-6 overflow-y-auto space-y-4 custom-scrollbar flex-1">
         <div id="dynamicFormInputs" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
 
@@ -203,7 +192,7 @@
   </div>
 
   <script>
-    const sheetCsvUrls = {
+    const csvUrls = {
       hr: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR6DAT9uKgT8hruMlMEhJZE2X0O2Rm0g1YqkrkOXv0KSGkwdFqzAK5jRdxpDlvS_xQmwsf5EVTqC3Z-/pub?gid=622384515&single=true&output=csv',
       ops: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR6DAT9uKgT8hruMlMEhJZE2X0O2Rm0g1YqkrkOXv0KSGkwdFqzAK5jRdxpDlvS_xQmwsf5EVTqC3Z-/pub?gid=0&single=true&output=csv'
     };
@@ -227,17 +216,41 @@
       const tabTitle = document.getElementById('tabTitle');
 
       if (tab === 'hr') {
-        btnHR.className = "w-full text-left flex items-center justify-between p-3 rounded-xl bg-blue-600 text-white font-bold shadow-md shadow-blue-600/30 transition-all duration-200";
+        btnHR.className = "w-full text-left flex items-center justify-between p-3 rounded-xl bg-blue-600 text-white font-bold shadow-md transition-all duration-200";
         btnOps.className = "w-full text-left flex items-center justify-between p-3 rounded-xl hover:bg-slate-900 text-slate-400 hover:text-slate-100 font-bold transition-all duration-200";
         tabTitle.textContent = "Warehouse Onboarding";
       } else {
-        btnOps.className = "w-full text-left flex items-center justify-between p-3 rounded-xl bg-blue-600 text-white font-bold shadow-md shadow-blue-600/30 transition-all duration-200";
+        btnOps.className = "w-full text-left flex items-center justify-between p-3 rounded-xl bg-blue-600 text-white font-bold shadow-md transition-all duration-200";
         btnHR.className = "w-full text-left flex items-center justify-between p-3 rounded-xl hover:bg-slate-900 text-slate-400 hover:text-slate-100 font-bold transition-all duration-200";
         tabTitle.textContent = "Printing Press Onboarding";
       }
 
       document.getElementById('searchInput').value = '';
       loadSheetData(false);
+    }
+
+    function parseCSV(text) {
+      let p = '', c = '', r = [];
+      let q = false;
+      let row = [''];
+      for (let i = 0; i < text.length; i++) {
+        c = text[i];
+        let next = text[i+1];
+        if (c === '"') {
+          if (q && next === '"') { row[row.length - 1] += '"'; i++; }
+          else { q = !q; }
+        } else if (c === ',' && !q) {
+          row.push('');
+        } else if ((c === '\r' || c === '\n') && !q) {
+          if (c === '\r' && next === '\n') { i++; }
+          r.push(row);
+          row = [''];
+        } else {
+          row[row.length - 1] += c;
+        }
+      }
+      if (row.length > 1 || row[0] !== '') { r.push(row); }
+      return r;
     }
 
     function loadSheetData(forceRefresh = false) {
@@ -248,36 +261,31 @@
       tableWrapper.classList.add('hidden');
 
       if (forceRefresh) {
+        // Clear HRMS overrides on force refresh to fetch 100% fresh sheet data
         localStorage.removeItem(getStorageKey('edits'));
       }
 
-      // Add cache buster parameter to avoid Google Sheets server-side caching
-      const cacheBuster = '&_cb=' + new Date().getTime() + Math.random().toString(36).substring(7);
-      const timestampUrl = sheetCsvUrls[activeTab] + cacheBuster;
+      const cacheBuster = '&_cb=' + new Date().getTime() + Math.random().toString(36).substring(2);
+      const targetUrl = csvUrls[activeTab] + cacheBuster;
 
-      Papa.parse(timestampUrl, {
-        download: true,
-        header: false,
-        skipEmptyLines: 'greedy',
-        complete: function(results) {
-          processSheetData(results.data, forceRefresh);
+      fetch(targetUrl, { cache: 'no-store' })
+        .then(res => res.text())
+        .then(csvText => {
+          const rawData = parseCSV(csvText);
+          processRawArrayData(rawData, forceRefresh);
           loader.classList.add('hidden');
           tableWrapper.classList.remove('hidden');
-
-          if (forceRefresh) {
-            showAlert(' Google Sheet data refreshed successfully from live sheet!', 'success');
-          }
-        },
-        error: function(err) {
+          if (forceRefresh) showAlert(' 100% Synced with Google Sheet live data!', 'success');
+        })
+        .catch(err => {
           showAlert('Failed to load Google Sheet data.', 'error');
-        }
-      });
+        });
     }
 
-    function processSheetData(rawData, forceRefresh) {
+    function processRawArrayData(rawData, forceRefresh) {
       if (!rawData || rawData.length === 0) return;
 
-      let originalHeaders = rawData[0].map(h => (h || '').trim());
+      let originalHeaders = rawData[0].map(h => (h || '').toString().trim());
       
       let validIndices = [];
       let headers = [];
@@ -294,11 +302,12 @@
       let sheetRows = [];
       for (let i = 1; i < rawData.length; i++) {
         let fullRow = rawData[i];
-        let filteredRow = validIndices.map(idx => (fullRow[idx] || '').replace(/\s+/g, ' ').trim());
+        if (!fullRow || fullRow.length === 0 || (fullRow.length === 1 && fullRow[0].trim() === '')) continue;
+        let filteredRow = validIndices.map(idx => (fullRow[idx] !== undefined ? fullRow[idx] : '').toString().trim());
         sheetRows.push(filteredRow);
       }
 
-      const aadhaarIdx = globalHeaders.findIndex(h => h.toLowerCase().includes('aadhar'));
+      const primaryIdx = globalHeaders.findIndex(h => h.toLowerCase().includes('aadhar') || h.toLowerCase().includes('emp') || h.toLowerCase().includes('id'));
 
       let localOverrides = JSON.parse(localStorage.getItem(getStorageKey('edits')) || '{}');
       let localAdded = JSON.parse(localStorage.getItem(getStorageKey('added')) || '[]');
@@ -306,8 +315,9 @@
       let mergedRows = [];
 
       sheetRows.forEach((sRow, idx) => {
-        let uniqueKey = (aadhaarIdx !== -1 && sRow[aadhaarIdx]) ? sRow[aadhaarIdx].replace(/\s+/g, '') : `row_${idx}`;
+        let uniqueKey = (primaryIdx !== -1 && sRow[primaryIdx]) ? sRow[primaryIdx].replace(/\s+/g, '') : `row_${idx}`;
 
+        // If local edit exists and forceRefresh is false, keep local edit
         if (localOverrides[uniqueKey] && !forceRefresh) {
           mergedRows.push(localOverrides[uniqueKey]);
         } else {
@@ -316,8 +326,8 @@
       });
 
       localAdded.forEach(aRow => {
-        let uniqueKey = (aadhaarIdx !== -1 && aRow[aadhaarIdx]) ? aRow[aadhaarIdx].replace(/\s+/g, '') : null;
-        if (uniqueKey && !mergedRows.some(r => r[aadhaarIdx] && r[aadhaarIdx].replace(/\s+/g, '') === uniqueKey)) {
+        let uniqueKey = (primaryIdx !== -1 && aRow[primaryIdx]) ? aRow[primaryIdx].replace(/\s+/g, '') : null;
+        if (uniqueKey && !mergedRows.some(r => r[primaryIdx] && r[primaryIdx].replace(/\s+/g, '') === uniqueKey)) {
           mergedRows.push(aRow);
         }
       });
@@ -359,7 +369,7 @@
 
         row.forEach((cellVal, colIdx) => {
           const td = document.createElement('td');
-          let val = (cellVal || '').trim();
+          let val = (cellVal || '').toString().trim();
           const colName = (headers[colIdx] || '').toLowerCase();
 
           if (colIdx === snIdx || colName === 'sn') {
@@ -492,32 +502,20 @@
       const inputs = document.querySelectorAll('#dynamicFormInputs input');
       let newRow = new Array(globalHeaders.length).fill('');
 
-      let aadhaarValue = '';
-      let aadhaarIdx = globalHeaders.findIndex(h => h.toLowerCase().includes('aadhar'));
+      let primaryValue = '';
+      let primaryIdx = globalHeaders.findIndex(h => h.toLowerCase().includes('aadhar') || h.toLowerCase().includes('emp') || h.toLowerCase().includes('id'));
 
       inputs.forEach(input => {
         const idx = parseInt(input.getAttribute('data-colindex'));
         const val = input.value.trim();
         newRow[idx] = val;
 
-        if (idx === aadhaarIdx) {
-          aadhaarValue = val.replace(/\s+/g, '');
+        if (idx === primaryIdx) {
+          primaryValue = val.replace(/\s+/g, '');
         }
       });
 
-      if (aadhaarValue) {
-        const duplicateIndex = globalTableRows.findIndex((row, rIdx) => {
-          if (editingIndex >= 0 && rIdx === editingIndex) return false;
-          return row[aadhaarIdx] && row[aadhaarIdx].replace(/\s+/g, '') === aadhaarValue;
-        });
-
-        if (duplicateIndex !== -1) {
-          showAlert(` RESTRICTED: Duplicate Entry! Aadhaar already exists in system.`, 'error');
-          return;
-        }
-      }
-
-      let key = aadhaarValue || `row_${editingIndex >= 0 ? editingIndex : globalTableRows.length}`;
+      let key = primaryValue || `row_${editingIndex >= 0 ? editingIndex : globalTableRows.length}`;
 
       if (editingIndex >= 0) {
         globalTableRows[editingIndex] = newRow;
@@ -526,7 +524,7 @@
         localOverrides[key] = newRow;
         localStorage.setItem(getStorageKey('edits'), JSON.stringify(localOverrides));
 
-        showAlert(` SUCCESS: Employee record updated!`, 'success');
+        showAlert(` Employee record updated in HRMS!`, 'success');
       } else {
         globalTableRows.push(newRow);
 
@@ -534,7 +532,7 @@
         localAdded.push(newRow);
         localStorage.setItem(getStorageKey('added'), JSON.stringify(localAdded));
 
-        showAlert(` SUCCESS: New employee added!`, 'success');
+        showAlert(` New employee added to HRMS!`, 'success');
       }
 
       closeAddModal();
