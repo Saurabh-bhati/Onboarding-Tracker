@@ -59,7 +59,7 @@
             <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
             <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
           </span>
-          Instant Aadhaar Block Active
+          Strict Aadhaar Block Active
         </div>
         <p class="text-[11px] text-slate-400 font-medium mt-1">Real-Time Duplicate Filter</p>
       </div>
@@ -120,7 +120,7 @@
             </div>
             <div>
               <p class="text-xs font-bold uppercase text-slate-500 tracking-wider">Verification System</p>
-              <h3 class="text-base font-black text-emerald-700 mt-0.5">Instant Aadhaar Block Enabled</h3>
+              <h3 class="text-base font-black text-emerald-700 mt-0.5">Duplicate Aadhaar Blocking Enabled</h3>
             </div>
           </div>
         </div>
@@ -213,6 +213,17 @@
 
     function getStorageKey(key) {
       return `hrms_data_${activeTab}_${key}`;
+    }
+
+    function isAadhaarHeader(headerName) {
+      if (!headerName) return false;
+      const clean = headerName.toString().toLowerCase().trim();
+      return /aadh?a?r|uid|id card/i.test(clean);
+    }
+
+    function cleanDigits(val) {
+      if (!val) return '';
+      return val.toString().replace(/\D/g, '');
     }
 
     function switchTab(tab) {
@@ -321,7 +332,7 @@
         sheetRows.push(filteredRow);
       }
 
-      const aadhaarIdx = globalHeaders.findIndex(h => h.toLowerCase().includes('aadhar') || h.toLowerCase().includes('emp') || h.toLowerCase().includes('id'));
+      const aadhaarIdx = globalHeaders.findIndex(isAadhaarHeader);
       
       let localOverrides = JSON.parse(localStorage.getItem(getStorageKey('edits')) || '{}');
       let localAdded = JSON.parse(localStorage.getItem(getStorageKey('added')) || '[]');
@@ -330,7 +341,7 @@
       let mergedRows = [];
 
       sheetRows.forEach((sRow, idx) => {
-        let uniqueKey = (aadhaarIdx !== -1 && sRow[aadhaarIdx]) ? sRow[aadhaarIdx].replace(/\D/g, '') : `row_${idx}`;
+        let uniqueKey = (aadhaarIdx !== -1 && sRow[aadhaarIdx]) ? cleanDigits(sRow[aadhaarIdx]) : `row_${idx}`;
         
         if (localDeleted.includes(uniqueKey)) {
           return;
@@ -344,12 +355,12 @@
       });
 
       localAdded.forEach(aRow => {
-        let uniqueKey = (aadhaarIdx !== -1 && aRow[aadhaarIdx]) ? aRow[aadhaarIdx].replace(/\D/g, '') : null;
+        let uniqueKey = (aadhaarIdx !== -1 && aRow[aadhaarIdx]) ? cleanDigits(aRow[aadhaarIdx]) : null;
         if (uniqueKey && localDeleted.includes(uniqueKey)) {
           return;
         }
 
-        if (uniqueKey && !mergedRows.some(r => r[aadhaarIdx] && r[aadhaarIdx].replace(/\D/g, '') === uniqueKey)) {
+        if (uniqueKey && !mergedRows.some(r => r[aadhaarIdx] && cleanDigits(r[aadhaarIdx]) === uniqueKey)) {
           if (localOverrides[uniqueKey]) {
             mergedRows.push(localOverrides[uniqueKey]);
           } else {
@@ -439,7 +450,7 @@
             row[colIdx] = val;
           }
 
-          const isNumberOrId = /^\d+$/.test(val) || colName.includes('aadhar') || colName.includes('mobile') || colName.includes('emp');
+          const isNumberOrId = /^\d+$/.test(val) || isAadhaarHeader(headers[colIdx]) || colName.includes('mobile') || colName.includes('emp');
 
           if (isNumberOrId) {
             td.className = "px-4 py-3.5 whitespace-nowrap mono-number text-left tracking-wider text-slate-950 font-bold bg-slate-50/50";
@@ -602,14 +613,16 @@
         const div = document.createElement('div');
         const val = existingData[idx] || '';
 
-        const isAadhaar = hLower.includes('aadhar');
+        const isAadhaar = isAadhaarHeader(h);
         const isMobile = hLower.includes('mobile') || hLower.includes('phone');
 
         div.innerHTML = `
-          <label class="block text-xs font-bold text-slate-700 mb-1">${h} ${isAadhaar ? '<span class="text-rose-600 font-extrabold">* (Aadhaar Verification)</span>' : ''}</label>
+          <label class="block text-xs font-bold text-slate-700 mb-1">${h} ${isAadhaar ? '<span class="text-rose-600 font-extrabold">* (Aadhaar Check)</span>' : ''}</label>
           <input type="text" id="${isAadhaar ? 'aadhaarInput' : 'field_' + idx}" data-colindex="${idx}" value="${val}" ${isAadhaar ? 'required' : ''} 
             placeholder="Enter ${h}" 
             oninput="${isAadhaar ? 'validateAadhaarRealtime(this)' : ''}"
+            onkeyup="${isAadhaar ? 'validateAadhaarRealtime(this)' : ''}"
+            onpaste="${isAadhaar ? 'setTimeout(()=>validateAadhaarRealtime(this), 50)' : ''}"
             class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-bold text-slate-900 ${isAadhaar || isMobile ? 'mono-number' : ''} focus:ring-2 focus:ring-blue-500 focus:outline-none transition-colors">
         `;
         container.appendChild(div);
@@ -619,22 +632,30 @@
       document.getElementById('addModal').classList.add('flex');
     }
 
-    // REAL-TIME INSTANT AADHAAR DUPLICATE CHECK FUNCTION
+    // STRICT REAL-TIME DYNAMIC AADHAAR DUPLICATE CHECK FUNCTION
     function validateAadhaarRealtime(inputElement) {
-      const enteredRaw = inputElement.value.trim().replace(/\D/g, '');
+      const enteredDigits = cleanDigits(inputElement.value);
       const errDiv = document.getElementById('modalErrorMsg');
       const errText = document.getElementById('modalErrorText');
       const submitBtn = document.getElementById('modalSubmitBtn');
 
-      if (!enteredRaw || enteredRaw.length < 4) {
+      if (!enteredDigits || enteredDigits.length < 5) {
         errDiv.classList.add('hidden');
         inputElement.classList.remove('border-rose-500', 'bg-rose-50', 'text-rose-900');
         submitBtn.disabled = false;
         return;
       }
 
-      const aadhaarIdx = globalHeaders.findIndex(h => h.toLowerCase().includes('aadhar') || h.toLowerCase().includes('emp') || h.toLowerCase().includes('id'));
-      const nameIdx = globalHeaders.findIndex(h => h.toLowerCase().includes('name'));
+      // Detect Aadhaar and Name column indices dynamically
+      let aadhaarIdx = globalHeaders.findIndex(isAadhaarHeader);
+      let nameIdx = globalHeaders.findIndex(h => /name|candidate|employee/i.test(h));
+
+      // Fallback: If no explicit header matches, check columns containing 12-digit strings
+      if (aadhaarIdx === -1 && globalTableRows.length > 0) {
+        aadhaarIdx = globalHeaders.findIndex((_, col) => {
+          return globalTableRows.some(r => cleanDigits(r[col]).length === 12);
+        });
+      }
 
       if (aadhaarIdx === -1) return;
 
@@ -642,8 +663,10 @@
 
       const isDuplicate = globalTableRows.some((row, rIdx) => {
         if (editingIndex >= 0 && rIdx === editingIndex) return false;
-        const existingVal = (row[aadhaarIdx] || '').toString().replace(/\D/g, '');
-        if (existingVal && existingVal === enteredRaw) {
+        const existingDigits = cleanDigits(row[aadhaarIdx]);
+        
+        // Exact 12 digit or exact number string match
+        if (existingDigits && existingDigits === enteredDigits) {
           duplicateMatch = row;
           return true;
         }
@@ -654,9 +677,9 @@
         const existingName = (nameIdx !== -1 && duplicateMatch && duplicateMatch[nameIdx]) ? duplicateMatch[nameIdx] : 'Existing Employee';
 
         inputElement.classList.add('border-rose-500', 'bg-rose-50', 'text-rose-900');
-        errText.innerHTML = `This Aadhaar Card is <strong>ALREADY REGISTERED</strong> to <span class="underline font-bold text-rose-900">${existingName}</span>. Onboarding is blocked!`;
+        errText.innerHTML = `Entered Aadhaar Card is <strong>ALREADY REGISTERED</strong> to candidate: <span class="underline font-extrabold text-rose-900">${existingName}</span>. Onboarding is blocked!`;
         errDiv.classList.remove('hidden');
-        submitBtn.disabled = true; // Disable Save Button immediately
+        submitBtn.disabled = true; // Lock Submit Button
       } else {
         inputElement.classList.remove('border-rose-500', 'bg-rose-50', 'text-rose-900');
         errDiv.classList.add('hidden');
@@ -678,15 +701,21 @@
 
       const submitBtn = document.getElementById('modalSubmitBtn');
       if (submitBtn.disabled) {
-        alert("Cannot submit! Duplicate Aadhaar Card detected.");
+        alert("Action Blocked! Duplicate Aadhaar Card detected.");
         return;
       }
 
       const inputs = document.querySelectorAll('#dynamicFormInputs input');
       let newRow = new Array(globalHeaders.length).fill('');
 
-      let aadhaarValue = '';
-      let aadhaarIdx = globalHeaders.findIndex(h => h.toLowerCase().includes('aadhar') || h.toLowerCase().includes('emp') || h.toLowerCase().includes('id'));
+      let aadhaarValueDigits = '';
+      let aadhaarIdx = globalHeaders.findIndex(isAadhaarHeader);
+
+      if (aadhaarIdx === -1 && globalTableRows.length > 0) {
+        aadhaarIdx = globalHeaders.findIndex((_, col) => {
+          return globalTableRows.some(r => cleanDigits(r[col]).length === 12);
+        });
+      }
 
       inputs.forEach(input => {
         const idx = parseInt(input.getAttribute('data-colindex'));
@@ -694,25 +723,25 @@
         newRow[idx] = val;
 
         if (idx === aadhaarIdx) {
-          aadhaarValue = val.replace(/\D/g, '');
+          aadhaarValueDigits = cleanDigits(val);
         }
       });
 
-      // Double check before final commit
-      if (aadhaarIdx !== -1 && aadhaarValue) {
+      // Strict Barrier: Check again at final submit
+      if (aadhaarIdx !== -1 && aadhaarValueDigits) {
         let isDuplicate = globalTableRows.some((row, rIdx) => {
           if (editingIndex >= 0 && rIdx === editingIndex) return false;
-          const existingVal = (row[aadhaarIdx] || '').toString().replace(/\D/g, '');
-          return (existingVal && existingVal === aadhaarValue);
+          const existingDigits = cleanDigits(row[aadhaarIdx]);
+          return (existingDigits && existingDigits === aadhaarValueDigits);
         });
 
         if (isDuplicate) {
-          alert("Duplicate Aadhaar Card detected! Onboarding cancelled.");
+          alert("CRITICAL ALERT: Duplicate Aadhaar Card detected! Onboarding Rejected.");
           return;
         }
       }
 
-      let key = aadhaarValue || `row_${editingIndex >= 0 ? editingIndex : globalTableRows.length}`;
+      let key = aadhaarValueDigits || `row_${editingIndex >= 0 ? editingIndex : globalTableRows.length}`;
 
       if (editingIndex >= 0) {
         globalTableRows[editingIndex] = newRow;
@@ -742,13 +771,19 @@
     }
 
     function deleteEmployee(index) {
-      const aadhaarIdx = globalHeaders.findIndex(h => h.toLowerCase().includes('aadhar') || h.toLowerCase().includes('emp') || h.toLowerCase().includes('id'));
+      let aadhaarIdx = globalHeaders.findIndex(isAadhaarHeader);
+      if (aadhaarIdx === -1 && globalTableRows.length > 0) {
+        aadhaarIdx = globalHeaders.findIndex((_, col) => {
+          return globalTableRows.some(r => cleanDigits(r[col]).length === 12);
+        });
+      }
+
       const targetRow = globalTableRows[index];
 
       if (!targetRow) return;
 
       if (confirm(`Are you sure you want to delete Employee #${index + 1}?`)) {
-        let uniqueKey = (aadhaarIdx !== -1 && targetRow[aadhaarIdx]) ? targetRow[aadhaarIdx].replace(/\D/g, '') : `row_${index}`;
+        let uniqueKey = (aadhaarIdx !== -1 && targetRow[aadhaarIdx]) ? cleanDigits(targetRow[aadhaarIdx]) : `row_${index}`;
 
         let localDeleted = JSON.parse(localStorage.getItem(getStorageKey('deleted')) || '[]');
         if (!localDeleted.includes(uniqueKey)) {
