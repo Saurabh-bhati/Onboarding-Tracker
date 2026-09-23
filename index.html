@@ -59,9 +59,9 @@
             <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
             <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
           </span>
-          Strict Duplicate Block Active
+          Strict Strict Rules Active
         </div>
-        <p class="text-[11px] text-slate-400 font-medium mt-1">Live Sheet Priority Sync</p>
+        <p class="text-[11px] text-slate-400 font-medium mt-1">Live Input Validations Enabled</p>
       </div>
     </aside>
 
@@ -116,11 +116,11 @@
 
           <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-300 flex items-center gap-4">
             <div class="p-3.5 bg-emerald-100 text-emerald-700 rounded-xl">
-              <i class="fa-solid fa-id-card-clip text-2xl"></i>
+              <i class="fa-solid fa-shield-halved text-2xl"></i>
             </div>
             <div>
-              <p class="text-xs font-bold uppercase text-slate-500 tracking-wider">Sync Mode</p>
-              <h3 class="text-base font-black text-emerald-700 mt-0.5">Sheet Always Preferred On Refresh</h3>
+              <p class="text-xs font-bold uppercase text-slate-500 tracking-wider">Validation Sync</p>
+              <h3 class="text-base font-black text-emerald-700 mt-0.5">Strict Length & Date Rules</h3>
             </div>
           </div>
         </div>
@@ -178,11 +178,11 @@
 
       <form id="addEmployeeForm" onsubmit="handleFormSubmit(event)" class="p-6 overflow-y-auto space-y-4 custom-scrollbar flex-1">
         
-        <!-- Duplicate Warning Alert Banner -->
+        <!-- Error Alert Banner -->
         <div id="modalErrorMsg" class="hidden p-3.5 bg-rose-50 border border-rose-300 text-rose-800 font-bold text-xs rounded-xl flex items-start gap-3">
           <i class="fa-solid fa-triangle-exclamation text-rose-600 text-lg mt-0.5 animate-bounce"></i>
           <div>
-            <p class="font-extrabold uppercase text-[11px] text-rose-900 tracking-wider">DUPLICATE RECORD DETECTED</p>
+            <p class="font-extrabold uppercase text-[11px] text-rose-900 tracking-wider">VALIDATION CHECK FAILED</p>
             <p id="modalErrorText" class="mt-0.5 font-semibold text-xs text-rose-700"></p>
           </div>
         </div>
@@ -219,6 +219,24 @@
       if (!headerName) return false;
       const clean = headerName.toString().toLowerCase().trim();
       return /aadh?a?r|uid|id card/i.test(clean);
+    }
+
+    function isEmpIdHeader(headerName) {
+      if (!headerName) return false;
+      const clean = headerName.toString().toLowerCase().trim();
+      return /emp\s*id|employee\s*id|id\s*code/i.test(clean);
+    }
+
+    function isMobileHeader(headerName) {
+      if (!headerName) return false;
+      const clean = headerName.toString().toLowerCase().trim();
+      return /mobile|phone|cdt\.\s*mobile|contact/i.test(clean);
+    }
+
+    function isDateHeader(headerName) {
+      if (!headerName) return false;
+      const clean = headerName.toString().toLowerCase().trim();
+      return /interview\s*date|date\s*of\s*joining|doj|dob|date\s*of\s*birth|date/i.test(clean);
     }
 
     function cleanDigits(val) {
@@ -340,11 +358,9 @@
 
       let mergedRows = [];
 
-      // Always include Google Sheet rows (updates from Sheet will ALWAYS override and show up)
       sheetRows.forEach((sRow) => {
         let uniqueKey = (aadhaarIdx !== -1 && sRow[aadhaarIdx]) ? cleanDigits(sRow[aadhaarIdx]) : null;
         
-        // If row was edited locally in HRMS, show edit, otherwise show fresh Sheet row
         if (uniqueKey && localOverrides[uniqueKey]) {
           mergedRows.push(localOverrides[uniqueKey]);
         } else {
@@ -352,12 +368,11 @@
         }
       });
 
-      // Include manually added HRMS rows (only if NOT explicitly deleted from HRMS)
       localAdded.forEach(aRow => {
         let uniqueKey = (aadhaarIdx !== -1 && aRow[aadhaarIdx]) ? cleanDigits(aRow[aadhaarIdx]) : JSON.stringify(aRow);
         
         if (localDeletedManual.includes(uniqueKey)) {
-          return; // Deleted manual entry will never come back
+          return;
         }
 
         if (uniqueKey && !mergedRows.some(r => r[aadhaarIdx] && cleanDigits(r[aadhaarIdx]) === uniqueKey)) {
@@ -450,7 +465,7 @@
             row[colIdx] = val;
           }
 
-          const isNumberOrId = /^\d+$/.test(val) || isAadhaarHeader(headers[colIdx]) || colName.includes('mobile') || colName.includes('emp');
+          const isNumberOrId = /^\d+$/.test(val) || isAadhaarHeader(headers[colIdx]) || isMobileHeader(headers[colIdx]) || isEmpIdHeader(headers[colIdx]);
 
           if (isNumberOrId) {
             td.className = "px-4 py-3.5 whitespace-nowrap mono-number text-left tracking-wider text-slate-950 font-bold bg-slate-50/50";
@@ -614,16 +629,29 @@
         const val = existingData[idx] || '';
 
         const isAadhaar = isAadhaarHeader(h);
-        const isMobile = hLower.includes('mobile') || hLower.includes('phone');
+        const isEmpId = isEmpIdHeader(h);
+        const isMobile = isMobileHeader(h);
+        const isDate = isDateHeader(h);
+
+        let placeholder = `Enter ${h}`;
+        if (isEmpId) placeholder = "e.g. EMP12345678 (Exact 11 Chars)";
+        if (isMobile) placeholder = "10 Digit Mobile Number";
+        if (isAadhaar) placeholder = "12 Digit Aadhaar Number";
+        if (isDate) placeholder = "e.g. 21-Feb-06";
 
         div.innerHTML = `
-          <label class="block text-xs font-bold text-slate-700 mb-1">${h} ${isAadhaar ? '<span class="text-rose-600 font-extrabold">* (Validation Check)</span>' : ''}</label>
-          <input type="text" id="${isAadhaar ? 'aadhaarInput' : 'field_' + idx}" data-colindex="${idx}" value="${val}" ${isAadhaar ? 'required' : ''} 
-            placeholder="Enter ${h}" 
-            oninput="${isAadhaar ? 'validateAadhaarRealtime(this)' : ''}"
-            onkeyup="${isAadhaar ? 'validateAadhaarRealtime(this)' : ''}"
-            onpaste="${isAadhaar ? 'setTimeout(()=>validateAadhaarRealtime(this), 50)' : ''}"
-            class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-bold text-slate-900 ${isAadhaar || isMobile ? 'mono-number' : ''} focus:ring-2 focus:ring-blue-500 focus:outline-none transition-colors">
+          <label class="block text-xs font-bold text-slate-700 mb-1">
+            ${h} 
+            <span class="text-rose-600 font-extrabold text-[11px] ml-0.5">
+              ${isEmpId ? '(11 Chars Alphanumeric)' : isMobile ? '(10 Digits Numeric)' : isAadhaar ? '(12 Digits Numeric)' : isDate ? '(DD-MMM-YY)' : '*'}
+            </span>
+          </label>
+          <input type="text" id="field_${idx}" data-colindex="${idx}" value="${val}" required
+            placeholder="${placeholder}" 
+            oninput="validateFormFieldsRealtime()"
+            onkeyup="validateFormFieldsRealtime()"
+            onpaste="setTimeout(()=>validateFormFieldsRealtime(), 50)"
+            class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-bold text-slate-900 ${isAadhaar || isMobile || isEmpId ? 'mono-number' : ''} focus:ring-2 focus:ring-blue-500 focus:outline-none transition-colors">
         `;
         container.appendChild(div);
       });
@@ -632,51 +660,85 @@
       document.getElementById('addModal').classList.add('flex');
     }
 
-    function validateAadhaarRealtime(inputElement) {
-      const enteredDigits = cleanDigits(inputElement.value);
+    function validateFormFieldsRealtime() {
       const errDiv = document.getElementById('modalErrorMsg');
       const errText = document.getElementById('modalErrorText');
       const submitBtn = document.getElementById('modalSubmitBtn');
 
-      if (!enteredDigits || enteredDigits.length < 5) {
-        errDiv.classList.add('hidden');
-        inputElement.classList.remove('border-rose-500', 'bg-rose-50', 'text-rose-900');
-        submitBtn.disabled = false;
-        return;
-      }
+      let errorMessage = null;
+      let invalidInputEl = null;
 
-      let aadhaarIdx = globalHeaders.findIndex(isAadhaarHeader);
-      let nameIdx = globalHeaders.findIndex(h => /name|candidate|employee/i.test(h));
+      globalHeaders.forEach((h, idx) => {
+        const inputEl = document.getElementById(`field_${idx}`);
+        if (!inputEl) return;
 
-      if (aadhaarIdx === -1 && globalTableRows.length > 0) {
-        aadhaarIdx = globalHeaders.findIndex((_, col) => {
-          return globalTableRows.some(r => cleanDigits(r[col]).length === 12);
-        });
-      }
+        const val = inputEl.value.trim();
+        inputEl.classList.remove('border-rose-500', 'bg-rose-50', 'text-rose-900');
 
-      if (aadhaarIdx === -1) return;
+        if (errorMessage) return; // Ignore rest if already caught an error
 
-      let duplicateMatch = null;
-
-      const isDuplicate = globalTableRows.some((row, rIdx) => {
-        if (editingIndex >= 0 && rIdx === editingIndex) return false;
-        const existingDigits = cleanDigits(row[aadhaarIdx]);
-        if (existingDigits && existingDigits === enteredDigits) {
-          duplicateMatch = row;
-          return true;
+        // 1. Emp ID Rule: Exactly 11 Alphanumeric characters
+        if (isEmpIdHeader(h) && val !== '') {
+          if (val.length !== 11) {
+            errorMessage = `<strong>${h}</strong> must be exactly <strong>11 characters</strong> long. (Current: ${val.length})`;
+            invalidInputEl = inputEl;
+          }
         }
-        return false;
+
+        // 2. Mobile Number Rule: Exactly 10 numeric digits
+        if (isMobileHeader(h) && val !== '') {
+          const numDigits = cleanDigits(val);
+          if (!/^\d+$/.test(val) || val.length !== 10) {
+            errorMessage = `<strong>${h}</strong> must contain exactly <strong>10 numeric digits</strong>.`;
+            invalidInputEl = inputEl;
+          }
+        }
+
+        // 3. Aadhaar Number Rule: Exactly 12 numeric digits
+        if (isAadhaarHeader(h) && val !== '') {
+          const numDigits = cleanDigits(val);
+          if (!/^\d+$/.test(val) || val.length !== 12) {
+            errorMessage = `<strong>${h}</strong> must contain exactly <strong>12 numeric digits</strong>.`;
+            invalidInputEl = inputEl;
+          } else {
+            // Duplicate Check for Aadhaar
+            let nameIdx = globalHeaders.findIndex(nameH => /name|candidate|employee/i.test(nameH));
+            let duplicateMatch = null;
+
+            const isDuplicate = globalTableRows.some((row, rIdx) => {
+              if (editingIndex >= 0 && rIdx === editingIndex) return false;
+              const existingDigits = cleanDigits(row[idx]);
+              if (existingDigits && existingDigits === numDigits) {
+                duplicateMatch = row;
+                return true;
+              }
+              return false;
+            });
+
+            if (isDuplicate) {
+              const existingName = (nameIdx !== -1 && duplicateMatch && duplicateMatch[nameIdx]) ? duplicateMatch[nameIdx] : 'Existing Employee';
+              errorMessage = `Entered Record ID is <strong>ALREADY REGISTERED</strong> to: <span class="underline font-extrabold text-rose-900">${existingName}</span>. Onboarding Blocked!`;
+              invalidInputEl = inputEl;
+            }
+          }
+        }
+
+        // 4. Date Validation Rule: Format like 21-Feb-06 (DD-MMM-YY)
+        if (isDateHeader(h) && val !== '') {
+          const datePattern = /^\d{1,2}-(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)-\d{2}$/i;
+          if (!datePattern.test(val)) {
+            errorMessage = `<strong>${h}</strong> must be in <strong>DD-MMM-YY</strong> format (e.g. 21-Feb-06).`;
+            invalidInputEl = inputEl;
+          }
+        }
       });
 
-      if (isDuplicate) {
-        const existingName = (nameIdx !== -1 && duplicateMatch && duplicateMatch[nameIdx]) ? duplicateMatch[nameIdx] : 'Existing Employee';
-
-        inputElement.classList.add('border-rose-500', 'bg-rose-50', 'text-rose-900');
-        errText.innerHTML = `Entered Record ID is <strong>ALREADY REGISTERED</strong> to candidate: <span class="underline font-extrabold text-rose-900">${existingName}</span>. Onboarding is blocked!`;
+      if (errorMessage && invalidInputEl) {
+        invalidInputEl.classList.add('border-rose-500', 'bg-rose-50', 'text-rose-900');
+        errText.innerHTML = errorMessage;
         errDiv.classList.remove('hidden');
         submitBtn.disabled = true;
       } else {
-        inputElement.classList.remove('border-rose-500', 'bg-rose-50', 'text-rose-900');
         errDiv.classList.add('hidden');
         submitBtn.disabled = false;
       }
@@ -696,7 +758,7 @@
 
       const submitBtn = document.getElementById('modalSubmitBtn');
       if (submitBtn.disabled) {
-        alert("Action Blocked! Duplicate record detected.");
+        alert("Action Blocked! Please fix invalid inputs before saving.");
         return;
       }
 
@@ -705,12 +767,6 @@
 
       let aadhaarValueDigits = '';
       let aadhaarIdx = globalHeaders.findIndex(isAadhaarHeader);
-
-      if (aadhaarIdx === -1 && globalTableRows.length > 0) {
-        aadhaarIdx = globalHeaders.findIndex((_, col) => {
-          return globalTableRows.some(r => cleanDigits(r[col]).length === 12);
-        });
-      }
 
       inputs.forEach(input => {
         const idx = parseInt(input.getAttribute('data-colindex'));
@@ -721,19 +777,6 @@
           aadhaarValueDigits = cleanDigits(val);
         }
       });
-
-      if (aadhaarIdx !== -1 && aadhaarValueDigits) {
-        let isDuplicate = globalTableRows.some((row, rIdx) => {
-          if (editingIndex >= 0 && rIdx === editingIndex) return false;
-          const existingDigits = cleanDigits(row[aadhaarIdx]);
-          return (existingDigits && existingDigits === aadhaarValueDigits);
-        });
-
-        if (isDuplicate) {
-          alert("CRITICAL ALERT: Duplicate Record detected! Onboarding Rejected.");
-          return;
-        }
-      }
 
       let key = aadhaarValueDigits || `row_${editingIndex >= 0 ? editingIndex : globalTableRows.length}`;
 
@@ -766,11 +809,6 @@
 
     function deleteEmployee(index) {
       let aadhaarIdx = globalHeaders.findIndex(isAadhaarHeader);
-      if (aadhaarIdx === -1 && globalTableRows.length > 0) {
-        aadhaarIdx = globalHeaders.findIndex((_, col) => {
-          return globalTableRows.some(r => cleanDigits(r[col]).length === 12);
-        });
-      }
 
       const targetRow = globalTableRows[index];
       if (!targetRow) return;
@@ -778,7 +816,6 @@
       if (confirm(`Are you sure you want to delete Employee #${index + 1}?`)) {
         let uniqueKey = (aadhaarIdx !== -1 && targetRow[aadhaarIdx]) ? cleanDigits(targetRow[aadhaarIdx]) : JSON.stringify(targetRow);
 
-        // Check if this row was manually added in HRMS
         let localAdded = JSON.parse(localStorage.getItem(getStorageKey('added')) || '[]');
         let isManualAdd = localAdded.some(aRow => {
           let aKey = (aadhaarIdx !== -1 && aRow[aadhaarIdx]) ? cleanDigits(aRow[aadhaarIdx]) : JSON.stringify(aRow);
@@ -786,7 +823,6 @@
         });
 
         if (isManualAdd) {
-          // Permanently block manually added rows upon delete
           let localDeletedManual = JSON.parse(localStorage.getItem(getStorageKey('deleted_manual')) || '[]');
           if (!localDeletedManual.includes(uniqueKey)) {
             localDeletedManual.push(uniqueKey);
@@ -794,7 +830,6 @@
           }
         }
 
-        // Remove overrides if any
         let localOverrides = JSON.parse(localStorage.getItem(getStorageKey('edits')) || '{}');
         delete localOverrides[uniqueKey];
         localStorage.setItem(getStorageKey('edits'), JSON.stringify(localOverrides));
