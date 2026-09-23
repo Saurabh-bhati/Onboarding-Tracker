@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Onboard New Employee</title>
+  <title>HRMS Dashboard - Employee Onboarding</title>
   <style>
     * {
       box-sizing: border-box;
@@ -13,21 +13,118 @@
     }
 
     body {
-      background-color: #0d1117;
-      display: flex;
-      justify-content: center;
-      align-items: center;
+      background-color: #0f172a;
+      color: #f8fafc;
       min-height: 100vh;
+      display: flex;
+    }
+
+    /* Sidebar Navigation */
+    .sidebar {
+      width: 260px;
+      background-color: #1e293b;
+      border-right: 1px solid #334155;
+      padding: 24px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .brand {
+      font-size: 20px;
+      font-weight: 700;
+      color: #38bdf8;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid #334155;
+    }
+
+    .menu-item {
+      padding: 12px 16px;
+      border-radius: 8px;
+      color: #94a3b8;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .menu-item.active, .menu-item:hover {
+      background-color: #334155;
+      color: #ffffff;
+    }
+
+    /* Main Content Area */
+    .main-content {
+      flex: 1;
+      padding: 32px;
+      background-color: #0f172a;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 28px;
+    }
+
+    .header h1 {
+      font-size: 24px;
+      font-weight: 700;
+      color: #f8fafc;
+    }
+
+    .btn-open-modal {
+      background-color: #10b981;
+      color: #ffffff;
+      padding: 10px 20px;
+      border-radius: 8px;
+      border: none;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn-open-modal:hover {
+      background-color: #059669;
+    }
+
+    /* Dashboard Stats Table Placeholder */
+    .table-card {
+      background-color: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 12px;
       padding: 20px;
     }
 
+    /* Modal Overlay (Background Dimming) */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background-color: rgba(0, 0, 0, 0.75);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      padding: 20px;
+    }
+
+    /* Onboard Employee Popup Container */
     .form-container {
       background-color: #ffffff;
       border-radius: 12px;
       width: 100%;
       max-width: 850px;
       padding: 32px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+      color: #1e293b;
+      position: relative;
     }
 
     .form-header {
@@ -36,16 +133,22 @@
       justify-content: space-between;
       margin-bottom: 24px;
       padding-bottom: 12px;
-      border-bottom: 1px solid #eaeaea;
+      border-bottom: 1px solid #e2e8f0;
     }
 
     .form-header h2 {
       font-size: 22px;
       font-weight: 700;
-      color: #111827;
-      display: flex;
-      align-items: center;
-      gap: 10px;
+      color: #0f172a;
+    }
+
+    .btn-close {
+      background: none;
+      border: none;
+      font-size: 20px;
+      color: #64748b;
+      cursor: pointer;
+      font-weight: bold;
     }
 
     .form-grid {
@@ -68,7 +171,7 @@
     .form-group label {
       font-size: 13px;
       font-weight: 600;
-      color: #374151;
+      color: #334155;
       margin-bottom: 6px;
     }
 
@@ -86,17 +189,17 @@
 
     .form-group input {
       padding: 10px 14px;
-      border: 1px solid #d1d5db;
+      border: 1px solid #cbd5e1;
       border-radius: 6px;
       font-size: 14px;
-      color: #1f2937;
+      color: #0f172a;
       outline: none;
       transition: border-color 0.2s ease, box-shadow 0.2s ease;
     }
 
     .form-group input:focus {
-      border-color: #059669;
-      box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.15);
+      border-color: #10b981;
+      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
     }
 
     .error-text {
@@ -130,119 +233,144 @@
     }
 
     .btn-cancel {
-      background-color: #e5e7eb;
-      color: #374151;
+      background-color: #e2e8f0;
+      color: #334155;
     }
 
     .btn-cancel:hover {
-      background-color: #d1d5db;
+      background-color: #cbd5e1;
     }
 
     .btn-submit {
-      background-color: #059669;
+      background-color: #10b981;
       color: #ffffff;
     }
 
     .btn-submit:hover {
-      background-color: #047857;
+      background-color: #059669;
     }
   </style>
 </head>
 <body>
 
-<div class="form-container">
-  <div class="form-header">
-    <h2>Onboard New Employee</h2>
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="brand">⚡ Enterprise HRMS</div>
+    <div class="menu-item active">Employee Directory</div>
+    <div class="menu-item">Onboarding Management</div>
+    <div class="menu-item">Department Portal</div>
+    <div class="menu-item">Settings</div>
   </div>
 
-  <form id="onboardForm" novalidate>
-    <div class="form-grid">
-
-      <!-- Agency Name -->
-      <div class="form-group">
-        <label for="agencyName">Agency Name</label>
-        <input type="text" id="agencyName" placeholder="Enter Agency Name">
-      </div>
-
-      <!-- Emp ID -->
-      <div class="form-group">
-        <label for="empId">Emp ID <span class="sub-label">(11 Chars Alphanumeric)</span></label>
-        <input type="text" id="empId" placeholder="e.g. EMP12345678 (Exact 11 Chars)">
-      </div>
-
-      <!-- Candidate Name (Fixed: Normal Text Input) -->
-      <div class="form-group">
-        <label for="candidateName">Candidate Name</label>
-        <input type="text" id="candidateName" placeholder="Enter Candidate Name">
-      </div>
-
-      <!-- Candidate Father Name (Fixed: Normal Text Input) -->
-      <div class="form-group">
-        <label for="fatherName">Candidate Father Name</label>
-        <input type="text" id="fatherName" placeholder="Enter Father Name">
-      </div>
-
-      <!-- Designation -->
-      <div class="form-group">
-        <label for="designation">Designation</label>
-        <input type="text" id="designation" placeholder="Enter Designation">
-      </div>
-
-      <!-- Cdt.Aadhar Number (Only field with * and Tree-based Duplicate Checking) -->
-      <div class="form-group">
-        <label for="aadharNumber">
-          Cdt.Aadhar Number <span class="required-star">*</span> 
-          <span class="sub-label">(12 Digits Numeric)</span>
-        </label>
-        <input type="text" id="aadharNumber" maxlength="12" placeholder="12 Digit Aadhaar Number">
-        <span id="aadharError" class="error-text"></span>
-      </div>
-
-      <!-- Cdt. Mobile Number -->
-      <div class="form-group">
-        <label for="mobileNumber">Cdt. Mobile Number <span class="sub-label">(10 Digits Numeric)</span></label>
-        <input type="text" id="mobileNumber" maxlength="10" placeholder="10 Digit Mobile Number">
-      </div>
-
-      <!-- DOB -->
-      <div class="form-group">
-        <label for="dob">DOB <span class="sub-label">(DD-MMM-YY)</span></label>
-        <input type="text" id="dob" placeholder="e.g. 21-Feb-06">
-      </div>
-
-      <!-- Interview Date -->
-      <div class="form-group">
-        <label for="interviewDate">Interview Date <span class="sub-label">(DD-MMM-YY)</span></label>
-        <input type="text" id="interviewDate" placeholder="e.g. 21-Feb-06">
-      </div>
-
-      <!-- Interview By -->
-      <div class="form-group">
-        <label for="interviewBy">Interview By</label>
-        <input type="text" id="interviewBy" placeholder="Enter Interview By">
-      </div>
-
-      <!-- DOJ -->
-      <div class="form-group">
-        <label for="doj">DOJ <span class="sub-label">(DD-MMM-YY)</span></label>
-        <input type="text" id="doj" placeholder="e.g. 21-Feb-06">
-      </div>
-
-      <!-- Department -->
-      <div class="form-group">
-        <label for="department">Department</label>
-        <input type="text" id="department" placeholder="Enter Department">
-      </div>
-
+  <!-- Main Content Area -->
+  <div class="main-content">
+    <div class="header">
+      <h1>Employee Onboarding Dashboard</h1>
+      <button class="btn-open-modal" id="openModalBtn">+ Onboard New Employee</button>
     </div>
 
-    <!-- Form Actions -->
-    <div class="form-actions">
-      <button type="button" class="btn btn-cancel">Cancel</button>
-      <button type="submit" class="btn btn-submit">Onboard Employee</button>
+    <div class="table-card">
+      <p style="color: #94a3b8;">Click "+ Onboard New Employee" button to launch the onboarding popup modal.</p>
     </div>
-  </form>
-</div>
+  </div>
+
+  <!-- Onboard New Employee Modal -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="form-container">
+      <div class="form-header">
+        <h2>Onboard New Employee</h2>
+        <button class="btn-close" id="closeModalBtn">&times;</button>
+      </div>
+
+      <form id="onboardForm" novalidate>
+        <div class="form-grid">
+
+          <!-- Agency Name -->
+          <div class="form-group">
+            <label for="agencyName">Agency Name</label>
+            <input type="text" id="agencyName" placeholder="Enter Agency Name">
+          </div>
+
+          <!-- Emp ID -->
+          <div class="form-group">
+            <label for="empId">Emp ID <span class="sub-label">(11 Chars Alphanumeric)</span></label>
+            <input type="text" id="empId" placeholder="e.g. EMP12345678 (Exact 11 Chars)">
+          </div>
+
+          <!-- Candidate Name (Fixed: Plain Text Input) -->
+          <div class="form-group">
+            <label for="candidateName">Candidate Name</label>
+            <input type="text" id="candidateName" placeholder="Enter Candidate Name">
+          </div>
+
+          <!-- Candidate Father Name (Fixed: Plain Text Input) -->
+          <div class="form-group">
+            <label for="fatherName">Candidate Father Name</label>
+            <input type="text" id="fatherName" placeholder="Enter Father Name">
+          </div>
+
+          <!-- Designation -->
+          <div class="form-group">
+            <label for="designation">Designation</label>
+            <input type="text" id="designation" placeholder="Enter Designation">
+          </div>
+
+          <!-- Cdt.Aadhar Number (Only field with * and Tree-based Duplicate Checking) -->
+          <div class="form-group">
+            <label for="aadharNumber">
+              Cdt.Aadhar Number <span class="required-star">*</span> 
+              <span class="sub-label">(12 Digits Numeric)</span>
+            </label>
+            <input type="text" id="aadharNumber" maxlength="12" placeholder="12 Digit Aadhaar Number">
+            <span id="aadharError" class="error-text"></span>
+          </div>
+
+          <!-- Cdt. Mobile Number -->
+          <div class="form-group">
+            <label for="mobileNumber">Cdt. Mobile Number <span class="sub-label">(10 Digits Numeric)</span></label>
+            <input type="text" id="mobileNumber" maxlength="10" placeholder="10 Digit Mobile Number">
+          </div>
+
+          <!-- DOB -->
+          <div class="form-group">
+            <label for="dob">DOB <span class="sub-label">(DD-MMM-YY)</span></label>
+            <input type="text" id="dob" placeholder="e.g. 21-Feb-06">
+          </div>
+
+          <!-- Interview Date -->
+          <div class="form-group">
+            <label for="interviewDate">Interview Date <span class="sub-label">(DD-MMM-YY)</span></label>
+            <input type="text" id="interviewDate" placeholder="e.g. 21-Feb-06">
+          </div>
+
+          <!-- Interview By -->
+          <div class="form-group">
+            <label for="interviewBy">Interview By</label>
+            <input type="text" id="interviewBy" placeholder="Enter Interview By">
+          </div>
+
+          <!-- DOJ -->
+          <div class="form-group">
+            <label for="doj">DOJ <span class="sub-label">(DD-MMM-YY)</span></label>
+            <input type="text" id="doj" placeholder="e.g. 21-Feb-06">
+          </div>
+
+          <!-- Department -->
+          <div class="form-group">
+            <label for="department">Department</label>
+            <input type="text" id="department" placeholder="Enter Department">
+          </div>
+
+        </div>
+
+        <!-- Form Actions -->
+        <div class="form-actions">
+          <button type="button" class="btn btn-cancel" id="cancelBtn">Cancel</button>
+          <button type="submit" class="btn btn-submit">Onboard Employee</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
 <script>
   // --- BINARY SEARCH TREE (BST) FOR DUPLICATE DETECTION ---
@@ -293,21 +421,40 @@
     }
   }
 
-  // Initialize Binary Search Tree instance
+  // Initialize Binary Search Tree
   const aadhaarTree = new AadhaarBST();
 
-  // Test ke liye sample data insert kar rahe hain
+  // Test data for duplicate detection
   aadhaarTree.insert("123456789012");
   aadhaarTree.insert("987654321098");
 
   document.addEventListener("DOMContentLoaded", () => {
+    const modalOverlay = document.getElementById("modalOverlay");
+    const openModalBtn = document.getElementById("openModalBtn");
+    const closeModalBtn = document.getElementById("closeModalBtn");
+    const cancelBtn = document.getElementById("cancelBtn");
+
     const aadharInput = document.getElementById("aadharNumber");
     const aadharError = document.getElementById("aadharError");
     const onboardForm = document.getElementById("onboardForm");
 
-    // Real-time input handling
+    // Modal Display Controls
+    const closeModal = () => {
+      modalOverlay.style.display = "none";
+      onboardForm.reset();
+      aadharError.textContent = "";
+      aadharInput.classList.remove("input-error");
+    };
+
+    openModalBtn.addEventListener("click", () => {
+      modalOverlay.style.display = "flex";
+    });
+
+    closeModalBtn.addEventListener("click", closeModal);
+    cancelBtn.addEventListener("click", closeModal);
+
+    // Real-time input handling & Tree lookup
     aadharInput.addEventListener("input", (e) => {
-      // Sirf numbers pass hone de
       let val = e.target.value.replace(/\D/g, "");
       e.target.value = val;
 
@@ -325,7 +472,7 @@
       }
     });
 
-    // Form submission event
+    // Form submission validation
     onboardForm.addEventListener("submit", (e) => {
       e.preventDefault();
       const val = aadharInput.value.trim();
@@ -351,10 +498,7 @@
       // Safe insertion into Tree
       aadhaarTree.insert(val);
       alert("Employee Onboarded Successfully!");
-
-      onboardForm.reset();
-      aadharError.textContent = "";
-      aadharInput.classList.remove("input-error");
+      closeModal();
     });
   });
 </script>
