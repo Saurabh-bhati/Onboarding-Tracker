@@ -59,9 +59,9 @@
             <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
             <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
           </span>
-          Strict Aadhaar Block Active
+          Strict Duplicate Block Active
         </div>
-        <p class="text-[11px] text-slate-400 font-medium mt-1">Real-Time Duplicate Filter</p>
+        <p class="text-[11px] text-slate-400 font-medium mt-1">Live Sheet Priority Sync</p>
       </div>
     </aside>
 
@@ -119,8 +119,8 @@
               <i class="fa-solid fa-id-card-clip text-2xl"></i>
             </div>
             <div>
-              <p class="text-xs font-bold uppercase text-slate-500 tracking-wider">Verification System</p>
-              <h3 class="text-base font-black text-emerald-700 mt-0.5">Duplicate Aadhaar Blocking Enabled</h3>
+              <p class="text-xs font-bold uppercase text-slate-500 tracking-wider">Sync Mode</p>
+              <h3 class="text-base font-black text-emerald-700 mt-0.5">Sheet Always Preferred On Refresh</h3>
             </div>
           </div>
         </div>
@@ -150,7 +150,7 @@
 
           <div id="loader" class="flex-1 flex flex-col items-center justify-center p-8">
             <div class="w-10 h-10 border-4 border-blue-600/30 border-t-blue-600 rounded-full animate-spin mb-3"></div>
-            <p class="text-xs font-bold text-slate-600">Syncing live data from Google Sheets & Local Cache...</p>
+            <p class="text-xs font-bold text-slate-600">Fetching fresh data from Google Sheets...</p>
           </div>
 
           <div id="tableWrapper" class="flex-1 overflow-auto custom-scrollbar hidden">
@@ -178,7 +178,7 @@
 
       <form id="addEmployeeForm" onsubmit="handleFormSubmit(event)" class="p-6 overflow-y-auto space-y-4 custom-scrollbar flex-1">
         
-        <!-- Aadhaar Card Instant Duplicate Alert Banner -->
+        <!-- Duplicate Warning Alert Banner -->
         <div id="modalErrorMsg" class="hidden p-3.5 bg-rose-50 border border-rose-300 text-rose-800 font-bold text-xs rounded-xl flex items-start gap-3">
           <i class="fa-solid fa-triangle-exclamation text-rose-600 text-lg mt-0.5 animate-bounce"></i>
           <div>
@@ -301,7 +301,7 @@
         tableWrapper.classList.remove('hidden');
 
         if (userNotified) {
-          showAlert('Google Sheet Data Synced with HRMS persistence!', 'success');
+          showAlert('Google Sheet live data synced successfully!', 'success');
         }
       } catch (err) {
         showAlert('Failed to fetch updated Sheet data.', 'error');
@@ -336,28 +336,28 @@
       
       let localOverrides = JSON.parse(localStorage.getItem(getStorageKey('edits')) || '{}');
       let localAdded = JSON.parse(localStorage.getItem(getStorageKey('added')) || '[]');
-      let localDeleted = JSON.parse(localStorage.getItem(getStorageKey('deleted')) || '[]');
+      let localDeletedManual = JSON.parse(localStorage.getItem(getStorageKey('deleted_manual')) || '[]');
 
       let mergedRows = [];
 
-      sheetRows.forEach((sRow, idx) => {
-        let uniqueKey = (aadhaarIdx !== -1 && sRow[aadhaarIdx]) ? cleanDigits(sRow[aadhaarIdx]) : `row_${idx}`;
+      // Always include Google Sheet rows (updates from Sheet will ALWAYS override and show up)
+      sheetRows.forEach((sRow) => {
+        let uniqueKey = (aadhaarIdx !== -1 && sRow[aadhaarIdx]) ? cleanDigits(sRow[aadhaarIdx]) : null;
         
-        if (localDeleted.includes(uniqueKey)) {
-          return;
-        }
-
-        if (localOverrides[uniqueKey]) {
+        // If row was edited locally in HRMS, show edit, otherwise show fresh Sheet row
+        if (uniqueKey && localOverrides[uniqueKey]) {
           mergedRows.push(localOverrides[uniqueKey]);
         } else {
           mergedRows.push(sRow);
         }
       });
 
+      // Include manually added HRMS rows (only if NOT explicitly deleted from HRMS)
       localAdded.forEach(aRow => {
-        let uniqueKey = (aadhaarIdx !== -1 && aRow[aadhaarIdx]) ? cleanDigits(aRow[aadhaarIdx]) : null;
-        if (uniqueKey && localDeleted.includes(uniqueKey)) {
-          return;
+        let uniqueKey = (aadhaarIdx !== -1 && aRow[aadhaarIdx]) ? cleanDigits(aRow[aadhaarIdx]) : JSON.stringify(aRow);
+        
+        if (localDeletedManual.includes(uniqueKey)) {
+          return; // Deleted manual entry will never come back
         }
 
         if (uniqueKey && !mergedRows.some(r => r[aadhaarIdx] && cleanDigits(r[aadhaarIdx]) === uniqueKey)) {
@@ -632,7 +632,6 @@
       document.getElementById('addModal').classList.add('flex');
     }
 
-    // STRICT REAL-TIME DYNAMIC AADHAAR DUPLICATE CHECK FUNCTION
     function validateAadhaarRealtime(inputElement) {
       const enteredDigits = cleanDigits(inputElement.value);
       const errDiv = document.getElementById('modalErrorMsg');
@@ -646,11 +645,9 @@
         return;
       }
 
-      // Detect Aadhaar and Name column indices dynamically
       let aadhaarIdx = globalHeaders.findIndex(isAadhaarHeader);
       let nameIdx = globalHeaders.findIndex(h => /name|candidate|employee/i.test(h));
 
-      // Fallback: If no explicit header matches, check columns containing 12-digit strings
       if (aadhaarIdx === -1 && globalTableRows.length > 0) {
         aadhaarIdx = globalHeaders.findIndex((_, col) => {
           return globalTableRows.some(r => cleanDigits(r[col]).length === 12);
@@ -664,8 +661,6 @@
       const isDuplicate = globalTableRows.some((row, rIdx) => {
         if (editingIndex >= 0 && rIdx === editingIndex) return false;
         const existingDigits = cleanDigits(row[aadhaarIdx]);
-        
-        // Exact 12 digit or exact number string match
         if (existingDigits && existingDigits === enteredDigits) {
           duplicateMatch = row;
           return true;
@@ -679,7 +674,7 @@
         inputElement.classList.add('border-rose-500', 'bg-rose-50', 'text-rose-900');
         errText.innerHTML = `Entered Aadhaar Card is <strong>ALREADY REGISTERED</strong> to candidate: <span class="underline font-extrabold text-rose-900">${existingName}</span>. Onboarding is blocked!`;
         errDiv.classList.remove('hidden');
-        submitBtn.disabled = true; // Lock Submit Button
+        submitBtn.disabled = true;
       } else {
         inputElement.classList.remove('border-rose-500', 'bg-rose-50', 'text-rose-900');
         errDiv.classList.add('hidden');
@@ -727,7 +722,6 @@
         }
       });
 
-      // Strict Barrier: Check again at final submit
       if (aadhaarIdx !== -1 && aadhaarValueDigits) {
         let isDuplicate = globalTableRows.some((row, rIdx) => {
           if (editingIndex >= 0 && rIdx === editingIndex) return false;
@@ -779,21 +773,35 @@
       }
 
       const targetRow = globalTableRows[index];
-
       if (!targetRow) return;
 
       if (confirm(`Are you sure you want to delete Employee #${index + 1}?`)) {
-        let uniqueKey = (aadhaarIdx !== -1 && targetRow[aadhaarIdx]) ? cleanDigits(targetRow[aadhaarIdx]) : `row_${index}`;
+        let uniqueKey = (aadhaarIdx !== -1 && targetRow[aadhaarIdx]) ? cleanDigits(targetRow[aadhaarIdx]) : JSON.stringify(targetRow);
 
-        let localDeleted = JSON.parse(localStorage.getItem(getStorageKey('deleted')) || '[]');
-        if (!localDeleted.includes(uniqueKey)) {
-          localDeleted.push(uniqueKey);
-          localStorage.setItem(getStorageKey('deleted'), JSON.stringify(localDeleted));
+        // Check if this row was manually added in HRMS
+        let localAdded = JSON.parse(localStorage.getItem(getStorageKey('added')) || '[]');
+        let isManualAdd = localAdded.some(aRow => {
+          let aKey = (aadhaarIdx !== -1 && aRow[aadhaarIdx]) ? cleanDigits(aRow[aadhaarIdx]) : JSON.stringify(aRow);
+          return aKey === uniqueKey;
+        });
+
+        if (isManualAdd) {
+          // Permanently block manually added rows upon delete
+          let localDeletedManual = JSON.parse(localStorage.getItem(getStorageKey('deleted_manual')) || '[]');
+          if (!localDeletedManual.includes(uniqueKey)) {
+            localDeletedManual.push(uniqueKey);
+            localStorage.setItem(getStorageKey('deleted_manual'), JSON.stringify(localDeletedManual));
+          }
         }
+
+        // Remove overrides if any
+        let localOverrides = JSON.parse(localStorage.getItem(getStorageKey('edits')) || '{}');
+        delete localOverrides[uniqueKey];
+        localStorage.setItem(getStorageKey('edits'), JSON.stringify(localOverrides));
 
         globalTableRows.splice(index, 1);
         renderHRMSTable(globalTableRows, globalHeaders);
-        showAlert(`Employee #${index + 1} deleted successfully!`, 'success');
+        showAlert(`Employee #${index + 1} removed from current view!`, 'success');
       }
     }
 
