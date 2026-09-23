@@ -3,505 +3,835 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>HRMS Dashboard - Employee Onboarding</title>
+  <title>PW Offroll HRMS</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@600;700&display=swap" rel="stylesheet">
+
   <style>
-    * {
-      box-sizing: border-box;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      background-color: #0f172a;
-      color: #f8fafc;
-      min-height: 100vh;
-      display: flex;
-    }
-
-    /* Sidebar Navigation */
-    .sidebar {
-      width: 260px;
-      background-color: #1e293b;
-      border-right: 1px solid #334155;
-      padding: 24px 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-    }
-
-    .brand {
-      font-size: 20px;
-      font-weight: 700;
-      color: #38bdf8;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding-bottom: 16px;
-      border-bottom: 1px solid #334155;
-    }
-
-    .menu-item {
-      padding: 12px 16px;
-      border-radius: 8px;
-      color: #94a3b8;
-      font-size: 14px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .menu-item.active, .menu-item:hover {
-      background-color: #334155;
-      color: #ffffff;
-    }
-
-    /* Main Content Area */
-    .main-content {
-      flex: 1;
-      padding: 32px;
-      background-color: #0f172a;
-    }
-
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 28px;
-    }
-
-    .header h1 {
-      font-size: 24px;
-      font-weight: 700;
-      color: #f8fafc;
-    }
-
-    .btn-open-modal {
-      background-color: #10b981;
-      color: #ffffff;
-      padding: 10px 20px;
-      border-radius: 8px;
-      border: none;
+    body { font-family: 'Inter', sans-serif; }
+    .custom-scrollbar::-webkit-scrollbar { height: 8px; width: 8px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 4px; }
+    .mono-number {
+      font-family: 'JetBrains Mono', monospace;
       font-weight: 600;
-      font-size: 14px;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-
-    .btn-open-modal:hover {
-      background-color: #059669;
-    }
-
-    /* Dashboard Stats Table Placeholder */
-    .table-card {
-      background-color: #1e293b;
-      border: 1px solid #334155;
-      border-radius: 12px;
-      padding: 20px;
-    }
-
-    /* Modal Overlay (Background Dimming) */
-    .modal-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background-color: rgba(0, 0, 0, 0.75);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-      padding: 20px;
-    }
-
-    /* Onboard Employee Popup Container */
-    .form-container {
-      background-color: #ffffff;
-      border-radius: 12px;
-      width: 100%;
-      max-width: 850px;
-      padding: 32px;
-      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
-      color: #1e293b;
-      position: relative;
-    }
-
-    .form-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 24px;
-      padding-bottom: 12px;
-      border-bottom: 1px solid #e2e8f0;
-    }
-
-    .form-header h2 {
-      font-size: 22px;
-      font-weight: 700;
-      color: #0f172a;
-    }
-
-    .btn-close {
-      background: none;
-      border: none;
-      font-size: 20px;
-      color: #64748b;
-      cursor: pointer;
-      font-weight: bold;
-    }
-
-    .form-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 20px;
-    }
-
-    @media (max-width: 640px) {
-      .form-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    .form-group {
-      display: flex;
-      flex-direction: column;
-    }
-
-    .form-group label {
-      font-size: 13px;
-      font-weight: 600;
-      color: #334155;
-      margin-bottom: 6px;
-    }
-
-    .sub-label {
-      color: #dc2626;
-      font-weight: 500;
-      font-size: 12px;
-    }
-
-    .required-star {
-      color: #dc2626;
-      font-weight: bold;
-      margin-left: 2px;
-    }
-
-    .form-group input {
-      padding: 10px 14px;
-      border: 1px solid #cbd5e1;
-      border-radius: 6px;
-      font-size: 14px;
-      color: #0f172a;
-      outline: none;
-      transition: border-color 0.2s ease, box-shadow 0.2s ease;
-    }
-
-    .form-group input:focus {
-      border-color: #10b981;
-      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
-    }
-
-    .error-text {
-      color: #dc2626;
-      font-size: 12px;
-      margin-top: 4px;
-      min-height: 16px;
-      font-weight: 500;
-    }
-
-    .input-error {
-      border-color: #dc2626 !important;
-      box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15) !important;
-    }
-
-    .form-actions {
-      display: flex;
-      justify-content: flex-end;
-      gap: 12px;
-      margin-top: 28px;
-    }
-
-    .btn {
-      padding: 10px 20px;
-      border-radius: 6px;
-      font-weight: 600;
-      font-size: 14px;
-      cursor: pointer;
-      border: none;
-      transition: background-color 0.2s ease;
-    }
-
-    .btn-cancel {
-      background-color: #e2e8f0;
-      color: #334155;
-    }
-
-    .btn-cancel:hover {
-      background-color: #cbd5e1;
-    }
-
-    .btn-submit {
-      background-color: #10b981;
-      color: #ffffff;
-    }
-
-    .btn-submit:hover {
-      background-color: #059669;
+      letter-spacing: 0.05em;
     }
   </style>
 </head>
-<body>
+<body class="bg-slate-100 text-slate-900 antialiased h-screen overflow-hidden" onclick="closeAllDropdowns(event)">
 
-  <!-- Sidebar -->
-  <div class="sidebar">
-    <div class="brand">⚡ Enterprise HRMS</div>
-    <div class="menu-item active">Employee Directory</div>
-    <div class="menu-item">Onboarding Management</div>
-    <div class="menu-item">Department Portal</div>
-    <div class="menu-item">Settings</div>
-  </div>
+  <div class="flex h-full">
+    <!-- Sidebar -->
+    <aside class="w-64 bg-slate-950 text-slate-200 flex flex-col justify-between p-5 shadow-2xl z-20 shrink-0">
+      <div>
+        <div class="flex items-center gap-3 px-2 py-3 mb-6 border-b border-slate-800">
+          <div class="bg-blue-600 text-white p-2.5 rounded-xl shadow-lg shadow-blue-600/40">
+            <i class="fa-solid fa-users-gear text-xl"></i>
+          </div>
+          <div>
+            <h2 class="font-extrabold text-white text-base tracking-wide leading-tight">PW Offroll HRMS</h2>
+            <span class="text-[11px] text-slate-400 font-semibold uppercase tracking-wider">Enterprise Portal</span>
+          </div>
+        </div>
 
-  <!-- Main Content Area -->
-  <div class="main-content">
-    <div class="header">
-      <h1>Employee Onboarding Dashboard</h1>
-      <button class="btn-open-modal" id="openModalBtn">+ Onboard New Employee</button>
-    </div>
-
-    <div class="table-card">
-      <p style="color: #94a3b8;">Click "+ Onboard New Employee" button to launch the onboarding popup modal.</p>
-    </div>
-  </div>
-
-  <!-- Onboard New Employee Modal -->
-  <div class="modal-overlay" id="modalOverlay">
-    <div class="form-container">
-      <div class="form-header">
-        <h2>Onboard New Employee</h2>
-        <button class="btn-close" id="closeModalBtn">&times;</button>
+        <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider px-3 mb-3">Dashboards</div>
+        <nav class="space-y-2">
+          <button onclick="switchTab('hr')" id="btnHR" class="w-full text-left flex items-center justify-between p-3 rounded-xl bg-blue-600 text-white font-bold shadow-md transition-all duration-200">
+            <span class="flex items-center gap-3"><i class="fa-solid fa-warehouse text-lg"></i> Warehouse Onboarding</span>
+            <i class="fa-solid fa-chevron-right text-xs opacity-70"></i>
+          </button>
+          
+          <button onclick="switchTab('ops')" id="btnOps" class="w-full text-left flex items-center justify-between p-3 rounded-xl hover:bg-slate-900 text-slate-400 hover:text-slate-100 font-bold transition-all duration-200">
+            <span class="flex items-center gap-3"><i class="fa-solid fa-print text-lg"></i> Printing Press Onboarding</span>
+            <i class="fa-solid fa-chevron-right text-xs opacity-70"></i>
+          </button>
+        </nav>
       </div>
 
-      <form id="onboardForm" novalidate>
-        <div class="form-grid">
+      <div class="p-3.5 bg-slate-900/80 rounded-xl border border-slate-800">
+        <div class="flex items-center gap-2 text-xs font-bold text-emerald-400">
+          <span class="relative flex h-2.5 w-2.5">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+          </span>
+          Strict Duplicate Block Active
+        </div>
+        <p class="text-[11px] text-slate-400 font-medium mt-1">Live Sheet Priority Sync</p>
+      </div>
+    </aside>
 
-          <!-- Agency Name -->
-          <div class="form-group">
-            <label for="agencyName">Agency Name</label>
-            <input type="text" id="agencyName" placeholder="Enter Agency Name">
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col h-full overflow-hidden">
+      
+      <header class="bg-white border-b border-slate-300 px-8 py-4 flex justify-between items-center shadow-sm z-10">
+        <div>
+          <h1 id="tabTitle" class="text-2xl font-black text-slate-950 tracking-tight">Warehouse Onboarding</h1>
+          <p class="text-xs font-semibold text-slate-500 mt-0.5">Real-time onboarding management & candidate records</p>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <div class="relative w-72">
+            <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
+            <input type="text" id="searchInput" oninput="applyAllFilters()" placeholder="Global Search (Name, Aadhaar, Phone...)" class="w-full pl-9 pr-4 py-2 bg-slate-100 border border-slate-300 rounded-lg text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
           </div>
 
-          <!-- Emp ID -->
-          <div class="form-group">
-            <label for="empId">Emp ID <span class="sub-label">(11 Chars Alphanumeric)</span></label>
-            <input type="text" id="empId" placeholder="e.g. EMP12345678 (Exact 11 Chars)">
+          <button onclick="openAddModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-xs font-extrabold flex items-center gap-2 shadow-sm transition">
+            <i class="fa-solid fa-user-plus"></i> Add Employee
+          </button>
+
+          <button onclick="loadSheetData(true)" class="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2 shadow-sm transition">
+            <i class="fa-solid fa-bolt text-amber-400"></i> Refresh Sync
+          </button>
+        </div>
+      </header>
+
+      <div class="flex-1 p-8 overflow-hidden flex flex-col bg-slate-100">
+
+        <!-- Stat Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-6">
+          <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-300 flex items-center gap-4">
+            <div class="p-3.5 bg-blue-100 text-blue-700 rounded-xl">
+              <i class="fa-solid fa-users text-2xl"></i>
+            </div>
+            <div>
+              <p class="text-xs font-bold uppercase text-slate-500 tracking-wider">Total Onboarded</p>
+              <h3 id="statTotal" class="text-2xl font-black text-slate-950 mt-0.5">--</h3>
+            </div>
           </div>
 
-          <!-- Candidate Name (Fixed: Plain Text Input) -->
-          <div class="form-group">
-            <label for="candidateName">Candidate Name</label>
-            <input type="text" id="candidateName" placeholder="Enter Candidate Name">
+          <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-300 flex items-center gap-4">
+            <div class="p-3.5 bg-indigo-100 text-indigo-700 rounded-xl">
+              <i class="fa-solid fa-table-list text-2xl"></i>
+            </div>
+            <div>
+              <p class="text-xs font-bold uppercase text-slate-500 tracking-wider">Total Data Fields</p>
+              <h3 id="statCols" class="text-2xl font-black text-slate-950 mt-0.5">--</h3>
+            </div>
           </div>
 
-          <!-- Candidate Father Name (Fixed: Plain Text Input) -->
-          <div class="form-group">
-            <label for="fatherName">Candidate Father Name</label>
-            <input type="text" id="fatherName" placeholder="Enter Father Name">
+          <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-300 flex items-center gap-4">
+            <div class="p-3.5 bg-emerald-100 text-emerald-700 rounded-xl">
+              <i class="fa-solid fa-id-card-clip text-2xl"></i>
+            </div>
+            <div>
+              <p class="text-xs font-bold uppercase text-slate-500 tracking-wider">Sync Mode</p>
+              <h3 class="text-base font-black text-emerald-700 mt-0.5">Sheet Always Preferred On Refresh</h3>
+            </div>
+          </div>
+        </div>
+
+        <!-- System Notification Banner -->
+        <div id="alertBanner" class="hidden mb-4 p-4 rounded-xl border font-bold text-xs flex items-center justify-between">
+          <span id="alertMessage"></span>
+          <button onclick="hideAlert()" class="text-lg font-bold ml-4">&times;</button>
+        </div>
+
+        <!-- Table Container -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-300 flex-1 flex flex-col overflow-hidden">
+          
+          <div class="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+            <div class="flex items-center gap-3">
+              <i class="fa-solid fa-folder-open text-blue-600 text-base"></i>
+              <h3 id="directoryHeading" class="font-extrabold text-slate-900 text-sm tracking-wide">Candidate Records Directory</h3>
+            </div>
+            
+            <div class="flex items-center gap-3">
+              <button onclick="clearAllFilters()" class="text-xs font-bold text-rose-600 hover:text-rose-800 bg-rose-50 hover:bg-rose-100 px-3 py-1.5 rounded-lg border border-rose-200 transition flex items-center gap-1.5">
+                <i class="fa-solid fa-filter-circle-xmark"></i> Clear All Filters
+              </button>
+              <span id="filteredCount" class="text-xs font-bold text-slate-700 bg-slate-200 px-3 py-1.5 rounded-full">Showing entries</span>
+            </div>
           </div>
 
-          <!-- Designation -->
-          <div class="form-group">
-            <label for="designation">Designation</label>
-            <input type="text" id="designation" placeholder="Enter Designation">
+          <div id="loader" class="flex-1 flex flex-col items-center justify-center p-8">
+            <div class="w-10 h-10 border-4 border-blue-600/30 border-t-blue-600 rounded-full animate-spin mb-3"></div>
+            <p class="text-xs font-bold text-slate-600">Fetching fresh data from Google Sheets...</p>
           </div>
 
-          <!-- Cdt.Aadhar Number (Only field with * and Tree-based Duplicate Checking) -->
-          <div class="form-group">
-            <label for="aadharNumber">
-              Cdt.Aadhar Number <span class="required-star">*</span> 
-              <span class="sub-label">(12 Digits Numeric)</span>
-            </label>
-            <input type="text" id="aadharNumber" maxlength="12" placeholder="12 Digit Aadhaar Number">
-            <span id="aadharError" class="error-text"></span>
-          </div>
-
-          <!-- Cdt. Mobile Number -->
-          <div class="form-group">
-            <label for="mobileNumber">Cdt. Mobile Number <span class="sub-label">(10 Digits Numeric)</span></label>
-            <input type="text" id="mobileNumber" maxlength="10" placeholder="10 Digit Mobile Number">
-          </div>
-
-          <!-- DOB -->
-          <div class="form-group">
-            <label for="dob">DOB <span class="sub-label">(DD-MMM-YY)</span></label>
-            <input type="text" id="dob" placeholder="e.g. 21-Feb-06">
-          </div>
-
-          <!-- Interview Date -->
-          <div class="form-group">
-            <label for="interviewDate">Interview Date <span class="sub-label">(DD-MMM-YY)</span></label>
-            <input type="text" id="interviewDate" placeholder="e.g. 21-Feb-06">
-          </div>
-
-          <!-- Interview By -->
-          <div class="form-group">
-            <label for="interviewBy">Interview By</label>
-            <input type="text" id="interviewBy" placeholder="Enter Interview By">
-          </div>
-
-          <!-- DOJ -->
-          <div class="form-group">
-            <label for="doj">DOJ <span class="sub-label">(DD-MMM-YY)</span></label>
-            <input type="text" id="doj" placeholder="e.g. 21-Feb-06">
-          </div>
-
-          <!-- Department -->
-          <div class="form-group">
-            <label for="department">Department</label>
-            <input type="text" id="department" placeholder="Enter Department">
+          <div id="tableWrapper" class="flex-1 overflow-auto custom-scrollbar hidden">
+            <table class="w-full text-left border-collapse" id="hrmsTable">
+              <thead class="bg-slate-200 text-slate-900 uppercase text-[11px] tracking-wider font-extrabold sticky top-0 z-10 border-b border-slate-300">
+                <tr id="tableHead"></tr>
+              </thead>
+              <tbody id="tableBody" class="divide-y divide-slate-200 text-xs font-bold text-slate-900"></tbody>
+            </table>
           </div>
 
         </div>
 
-        <!-- Form Actions -->
-        <div class="form-actions">
-          <button type="button" class="btn btn-cancel" id="cancelBtn">Cancel</button>
-          <button type="submit" class="btn btn-submit">Onboard Employee</button>
+      </div>
+    </main>
+  </div>
+
+  <!-- Modal -->
+  <div id="addModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-xl overflow-hidden border border-slate-300 flex flex-col max-h-[90vh]">
+      <div class="bg-slate-950 text-white px-6 py-4 flex justify-between items-center shrink-0">
+        <h3 id="modalTitle" class="font-extrabold text-sm"><i class="fa-solid fa-user-plus text-emerald-400 mr-2"></i> Onboard New Employee</h3>
+        <button onclick="closeAddModal()" class="text-slate-400 hover:text-white text-lg font-bold">&times;</button>
+      </div>
+
+      <form id="addEmployeeForm" onsubmit="handleFormSubmit(event)" class="p-6 overflow-y-auto space-y-4 custom-scrollbar flex-1">
+        
+        <!-- Duplicate Warning Alert Banner -->
+        <div id="modalErrorMsg" class="hidden p-3.5 bg-rose-50 border border-rose-300 text-rose-800 font-bold text-xs rounded-xl flex items-start gap-3">
+          <i class="fa-solid fa-triangle-exclamation text-rose-600 text-lg mt-0.5 animate-bounce"></i>
+          <div>
+            <p class="font-extrabold uppercase text-[11px] text-rose-900 tracking-wider">DUPLICATE AADHAAR DETECTED</p>
+            <p id="modalErrorText" class="mt-0.5 font-semibold text-xs text-rose-700"></p>
+          </div>
+        </div>
+
+        <div id="dynamicFormInputs" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+
+        <div class="flex justify-end gap-3 pt-4 border-t border-slate-200 shrink-0">
+          <button type="button" onclick="closeAddModal()" class="px-4 py-2 bg-slate-200 text-slate-800 font-bold rounded-lg text-xs hover:bg-slate-300 transition">Cancel</button>
+          <button type="submit" id="modalSubmitBtn" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold rounded-lg text-xs transition shadow-sm disabled:opacity-50 disabled:cursor-not-allowed">Save Employee</button>
         </div>
       </form>
     </div>
   </div>
 
-<script>
-  // --- BINARY SEARCH TREE (BST) FOR DUPLICATE DETECTION ---
-  class TreeNode {
-    constructor(val) {
-      this.val = val;
-      this.left = null;
-      this.right = null;
-    }
-  }
-
-  class AadhaarBST {
-    constructor() {
-      this.root = null;
-    }
-
-    insert(val) {
-      if (!this.root) {
-        this.root = new TreeNode(val);
-        return true;
-      }
-      let current = this.root;
-      while (true) {
-        if (val === current.val) return false; // Duplicate found
-        if (val < current.val) {
-          if (!current.left) {
-            current.left = new TreeNode(val);
-            return true;
-          }
-          current = current.left;
-        } else {
-          if (!current.right) {
-            current.right = new TreeNode(val);
-            return true;
-          }
-          current = current.right;
-        }
-      }
-    }
-
-    contains(val) {
-      let current = this.root;
-      while (current) {
-        if (val === current.val) return true;
-        current = val < current.val ? current.left : current.right;
-      }
-      return false;
-    }
-  }
-
-  // Initialize Binary Search Tree
-  const aadhaarTree = new AadhaarBST();
-
-  // Test data for duplicate detection
-  aadhaarTree.insert("123456789012");
-  aadhaarTree.insert("987654321098");
-
-  document.addEventListener("DOMContentLoaded", () => {
-    const modalOverlay = document.getElementById("modalOverlay");
-    const openModalBtn = document.getElementById("openModalBtn");
-    const closeModalBtn = document.getElementById("closeModalBtn");
-    const cancelBtn = document.getElementById("cancelBtn");
-
-    const aadharInput = document.getElementById("aadharNumber");
-    const aadharError = document.getElementById("aadharError");
-    const onboardForm = document.getElementById("onboardForm");
-
-    // Modal Display Controls
-    const closeModal = () => {
-      modalOverlay.style.display = "none";
-      onboardForm.reset();
-      aadharError.textContent = "";
-      aadharInput.classList.remove("input-error");
+  <script>
+    const csvUrls = {
+      hr: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR6DAT9uKgT8hruMlMEhJZE2X0O2Rm0g1YqkrkOXv0KSGkwdFqzAK5jRdxpDlvS_xQmwsf5EVTqC3Z-/pub?gid=622384515&single=true&output=csv',
+      ops: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vR6DAT9uKgT8hruMlMEhJZE2X0O2Rm0g1YqkrkOXv0KSGkwdFqzAK5jRdxpDlvS_xQmwsf5EVTqC3Z-/pub?gid=0&single=true&output=csv'
     };
 
-    openModalBtn.addEventListener("click", () => {
-      modalOverlay.style.display = "flex";
-    });
+    const excludedColumns = ["selection remarks", "shift", "status"];
 
-    closeModalBtn.addEventListener("click", closeModal);
-    cancelBtn.addEventListener("click", closeModal);
+    let activeTab = 'hr';
+    let globalHeaders = [];
+    let globalTableRows = [];
+    let columnFilters = {}; 
+    let editingIndex = -1;
 
-    // Real-time input handling & Tree lookup
-    aadharInput.addEventListener("input", (e) => {
-      let val = e.target.value.replace(/\D/g, "");
-      e.target.value = val;
+    function getStorageKey(key) {
+      return `hrms_data_${activeTab}_${key}`;
+    }
 
-      if (val.length === 12) {
-        if (aadhaarTree.contains(val)) {
-          aadharError.textContent = "Error: Duplicate Aadhaar Number detected!";
-          aadharInput.classList.add("input-error");
-        } else {
-          aadharError.textContent = "";
-          aadharInput.classList.remove("input-error");
-        }
+    function isAadhaarHeader(headerName) {
+      if (!headerName) return false;
+      const clean = headerName.toString().toLowerCase().trim();
+      return /aadh?a?r|uid|id card/i.test(clean);
+    }
+
+    function cleanDigits(val) {
+      if (!val) return '';
+      return val.toString().replace(/\D/g, '');
+    }
+
+    function switchTab(tab) {
+      activeTab = tab;
+      columnFilters = {};
+      
+      const btnHR = document.getElementById('btnHR');
+      const btnOps = document.getElementById('btnOps');
+      const tabTitle = document.getElementById('tabTitle');
+
+      if (tab === 'hr') {
+        btnHR.className = "w-full text-left flex items-center justify-between p-3 rounded-xl bg-blue-600 text-white font-bold shadow-md transition-all duration-200";
+        btnOps.className = "w-full text-left flex items-center justify-between p-3 rounded-xl hover:bg-slate-900 text-slate-400 hover:text-slate-100 font-bold transition-all duration-200";
+        tabTitle.textContent = "Warehouse Onboarding";
       } else {
-        aadharError.textContent = "";
-        aadharInput.classList.remove("input-error");
+        btnOps.className = "w-full text-left flex items-center justify-between p-3 rounded-xl bg-blue-600 text-white font-bold shadow-md transition-all duration-200";
+        btnHR.className = "w-full text-left flex items-center justify-between p-3 rounded-xl hover:bg-slate-900 text-slate-400 hover:text-slate-100 font-bold transition-all duration-200";
+        tabTitle.textContent = "Printing Press Onboarding";
       }
-    });
 
-    // Form submission validation
-    onboardForm.addEventListener("submit", (e) => {
+      document.getElementById('searchInput').value = '';
+      loadSheetData(false);
+    }
+
+    function parseCSV(text) {
+      let p = '', c = '', r = [];
+      let q = false;
+      let row = [''];
+      for (let i = 0; i < text.length; i++) {
+        c = text[i];
+        let next = text[i+1];
+        if (c === '"') {
+          if (q && next === '"') { row[row.length - 1] += '"'; i++; }
+          else { q = !q; }
+        } else if (c === ',' && !q) {
+          row.push('');
+        } else if ((c === '\r' || c === '\n') && !q) {
+          if (c === '\r' && next === '\n') { i++; }
+          r.push(row);
+          row = [''];
+        } else {
+          row[row.length - 1] += c;
+        }
+      }
+      if (row.length > 1 || row[0] !== '') { r.push(row); }
+      return r;
+    }
+
+    async function loadSheetData(userNotified = false) {
+      const loader = document.getElementById('loader');
+      const tableWrapper = document.getElementById('tableWrapper');
+      
+      loader.classList.remove('hidden');
+      tableWrapper.classList.add('hidden');
+
+      const timestamp = new Date().getTime();
+      const randomNonce = Math.random().toString(36).substring(2);
+      const targetUrl = csvUrls[activeTab] + `&nocache=${timestamp}_${randomNonce}`;
+
+      try {
+        const response = await fetch(targetUrl, {
+          method: 'GET',
+          cache: 'no-store',
+          headers: {
+            'Pragma': 'no-cache',
+            'Cache-Control': 'no-cache, no-store, must-revalidate'
+          }
+        });
+
+        const csvText = await response.text();
+        const rawData = parseCSV(csvText);
+        processRawArrayData(rawData);
+
+        loader.classList.add('hidden');
+        tableWrapper.classList.remove('hidden');
+
+        if (userNotified) {
+          showAlert('Google Sheet live data synced successfully!', 'success');
+        }
+      } catch (err) {
+        showAlert('Failed to fetch updated Sheet data.', 'error');
+      }
+    }
+
+    function processRawArrayData(rawData) {
+      if (!rawData || rawData.length === 0) return;
+
+      let originalHeaders = rawData[0].map(h => (h || '').toString().trim());
+      let validIndices = [];
+      let headers = [];
+
+      originalHeaders.forEach((h, idx) => {
+        if (!excludedColumns.includes(h.toLowerCase())) {
+          validIndices.push(idx);
+          headers.push(h);
+        }
+      });
+
+      globalHeaders = headers;
+      
+      let sheetRows = [];
+      for (let i = 1; i < rawData.length; i++) {
+        let fullRow = rawData[i];
+        if (!fullRow || fullRow.length === 0 || (fullRow.length === 1 && fullRow[0].trim() === '')) continue;
+        let filteredRow = validIndices.map(idx => (fullRow[idx] !== undefined ? fullRow[idx] : '').toString().trim());
+        sheetRows.push(filteredRow);
+      }
+
+      const aadhaarIdx = globalHeaders.findIndex(isAadhaarHeader);
+      
+      let localOverrides = JSON.parse(localStorage.getItem(getStorageKey('edits')) || '{}');
+      let localAdded = JSON.parse(localStorage.getItem(getStorageKey('added')) || '[]');
+      let localDeletedManual = JSON.parse(localStorage.getItem(getStorageKey('deleted_manual')) || '[]');
+
+      let mergedRows = [];
+
+      // Always include Google Sheet rows (updates from Sheet will ALWAYS override and show up)
+      sheetRows.forEach((sRow) => {
+        let uniqueKey = (aadhaarIdx !== -1 && sRow[aadhaarIdx]) ? cleanDigits(sRow[aadhaarIdx]) : null;
+        
+        // If row was edited locally in HRMS, show edit, otherwise show fresh Sheet row
+        if (uniqueKey && localOverrides[uniqueKey]) {
+          mergedRows.push(localOverrides[uniqueKey]);
+        } else {
+          mergedRows.push(sRow);
+        }
+      });
+
+      // Include manually added HRMS rows (only if NOT explicitly deleted from HRMS)
+      localAdded.forEach(aRow => {
+        let uniqueKey = (aadhaarIdx !== -1 && aRow[aadhaarIdx]) ? cleanDigits(aRow[aadhaarIdx]) : JSON.stringify(aRow);
+        
+        if (localDeletedManual.includes(uniqueKey)) {
+          return; // Deleted manual entry will never come back
+        }
+
+        if (uniqueKey && !mergedRows.some(r => r[aadhaarIdx] && cleanDigits(r[aadhaarIdx]) === uniqueKey)) {
+          if (localOverrides[uniqueKey]) {
+            mergedRows.push(localOverrides[uniqueKey]);
+          } else {
+            mergedRows.push(aRow);
+          }
+        }
+      });
+
+      globalTableRows = mergedRows;
+      renderHRMSTable(globalTableRows, globalHeaders);
+    }
+
+    function renderHRMSTable(rows, headers) {
+      const tableHead = document.getElementById('tableHead');
+      const tableBody = document.getElementById('tableBody');
+      const statTotal = document.getElementById('statTotal');
+      const statCols = document.getElementById('statCols');
+
+      tableHead.innerHTML = '';
+      tableBody.innerHTML = '';
+
+      statCols.textContent = headers.length;
+      statTotal.textContent = rows.length;
+
+      headers.forEach((headerText, colIdx) => {
+        const th = document.createElement('th');
+        th.className = "px-4 py-3 border-b border-slate-300 font-extrabold text-slate-900 text-left whitespace-nowrap bg-slate-200 relative";
+
+        const uniqueVals = Array.from(new Set(rows.map(r => (r[colIdx] || '').toString().trim()))).filter(Boolean).sort();
+
+        const flexContainer = document.createElement('div');
+        flexContainer.className = "flex items-center justify-between gap-2";
+
+        const titleSpan = document.createElement('span');
+        titleSpan.textContent = headerText || 'Field';
+
+        const filterBtn = document.createElement('button');
+        filterBtn.className = `p-1 rounded text-[11px] transition hover:bg-slate-300 ${columnFilters[colIdx] && (columnFilters[colIdx].selectedOption || columnFilters[colIdx].textSearch) ? 'text-blue-600 font-black' : 'text-slate-600'}`;
+        filterBtn.innerHTML = `<i class="fa-solid fa-filter"></i>`;
+        filterBtn.onclick = (e) => toggleDropdownMenu(e, colIdx);
+
+        const dropdownMenu = document.createElement('div');
+        dropdownMenu.id = `dropdown-menu-${colIdx}`;
+        dropdownMenu.className = "hidden absolute top-full left-0 mt-1 w-52 bg-white rounded-xl shadow-2xl border border-slate-300 z-50 p-2 font-normal normal-case text-slate-800 text-xs";
+
+        const searchInput = document.createElement('input');
+        searchInput.type = "text";
+        searchInput.placeholder = `Search in ${headerText}...`;
+        searchInput.className = "w-full px-2.5 py-1.5 border border-slate-300 rounded-lg text-xs font-semibold text-slate-900 mb-2 focus:ring-2 focus:ring-blue-500 focus:outline-none";
+        searchInput.value = (columnFilters[colIdx] && columnFilters[colIdx].textSearch) || '';
+        searchInput.oninput = (e) => onFilterSearchInput(colIdx, e.target.value);
+
+        const optionsList = document.createElement('div');
+        optionsList.id = `options-list-${colIdx}`;
+        optionsList.className = "max-h-40 overflow-y-auto custom-scrollbar space-y-0.5";
+
+        buildFilterOptions(colIdx, uniqueVals, optionsList);
+
+        dropdownMenu.appendChild(searchInput);
+        dropdownMenu.appendChild(optionsList);
+
+        flexContainer.appendChild(titleSpan);
+        flexContainer.appendChild(filterBtn);
+        th.appendChild(flexContainer);
+        th.appendChild(dropdownMenu);
+        tableHead.appendChild(th);
+      });
+
+      const actionTh = document.createElement('th');
+      actionTh.className = "px-4 py-3 border-b border-slate-300 font-extrabold text-slate-900 text-center whitespace-nowrap bg-slate-200";
+      actionTh.textContent = "ACTIONS";
+      tableHead.appendChild(actionTh);
+
+      const snIdx = headers.findIndex(h => h.toLowerCase() === 'sn' || h.toLowerCase().includes('serial'));
+
+      rows.forEach((row, rowIndex) => {
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-slate-200/60 transition border-b border-slate-200 text-slate-900 font-bold";
+
+        row.forEach((cellVal, colIdx) => {
+          const td = document.createElement('td');
+          let val = (cellVal || '').toString().trim();
+          const colName = (headers[colIdx] || '').toLowerCase();
+
+          if (colIdx === snIdx || colName === 'sn') {
+            val = (rowIndex + 1).toString();
+            row[colIdx] = val;
+          }
+
+          const isNumberOrId = /^\d+$/.test(val) || isAadhaarHeader(headers[colIdx]) || colName.includes('mobile') || colName.includes('emp');
+
+          if (isNumberOrId) {
+            td.className = "px-4 py-3.5 whitespace-nowrap mono-number text-left tracking-wider text-slate-950 font-bold bg-slate-50/50";
+          } else {
+            td.className = "px-4 py-3.5 whitespace-nowrap text-left text-slate-900 font-bold";
+          }
+
+          td.textContent = val || '-';
+          tr.appendChild(td);
+        });
+
+        const actionTd = document.createElement('td');
+        actionTd.className = "px-4 py-3.5 whitespace-nowrap text-center space-x-2";
+        actionTd.innerHTML = `
+          <button onclick="editEmployee(${rowIndex})" class="p-1.5 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg text-xs transition" title="Edit Employee">
+            <i class="fa-solid fa-pen-to-square"></i>
+          </button>
+          <button onclick="deleteEmployee(${rowIndex})" class="p-1.5 bg-rose-100 hover:bg-rose-200 text-rose-700 rounded-lg text-xs transition" title="Delete Employee">
+            <i class="fa-solid fa-trash"></i>
+          </button>
+        `;
+        tr.appendChild(actionTd);
+
+        tableBody.appendChild(tr);
+      });
+
+      applyAllFilters();
+    }
+
+    function buildFilterOptions(colIdx, uniqueVals, optionsList) {
+      optionsList.innerHTML = '';
+
+      const allOpt = document.createElement('div');
+      allOpt.className = `px-2 py-1.5 rounded cursor-pointer font-bold transition text-xs ${!columnFilters[colIdx] || !columnFilters[colIdx].selectedOption ? 'bg-blue-50 text-blue-700 font-extrabold' : 'hover:bg-slate-100 text-slate-700'}`;
+      allOpt.textContent = "Select All (Reset)";
+      allOpt.onclick = () => selectOption(colIdx, '');
+      optionsList.appendChild(allOpt);
+
+      const searchVal = (columnFilters[colIdx] && columnFilters[colIdx].textSearch) ? columnFilters[colIdx].textSearch.toLowerCase() : '';
+
+      uniqueVals.forEach(val => {
+        if (searchVal && !val.toLowerCase().includes(searchVal)) return;
+
+        const opt = document.createElement('div');
+        const isSelected = columnFilters[colIdx] && columnFilters[colIdx].selectedOption === val;
+
+        opt.className = `px-2 py-1 rounded cursor-pointer transition truncate text-xs font-semibold ${isSelected ? 'bg-blue-600 text-white font-bold' : 'hover:bg-slate-100 text-slate-800'}`;
+        opt.textContent = val;
+        opt.title = val;
+        opt.onclick = () => selectOption(colIdx, val);
+
+        optionsList.appendChild(opt);
+      });
+    }
+
+    function toggleDropdownMenu(e, colIdx) {
+      e.stopPropagation();
+      const menu = document.getElementById(`dropdown-menu-${colIdx}`);
+      const isHidden = menu.classList.contains('hidden');
+
+      closeAllDropdowns();
+
+      if (isHidden) {
+        menu.classList.remove('hidden');
+      }
+    }
+
+    function closeAllDropdowns(e) {
+      if (e && e.target.closest('[id^="dropdown-menu-"]')) return;
+      document.querySelectorAll('[id^="dropdown-menu-"]').forEach(menu => {
+        menu.classList.add('hidden');
+      });
+    }
+
+    function onFilterSearchInput(colIdx, text) {
+      if (!columnFilters[colIdx]) columnFilters[colIdx] = { textSearch: '', selectedOption: '' };
+      columnFilters[colIdx].textSearch = text;
+
+      const uniqueVals = Array.from(new Set(globalTableRows.map(r => (r[colIdx] || '').toString().trim()))).filter(Boolean).sort();
+      const optionsList = document.getElementById(`options-list-${colIdx}`);
+      if (optionsList) {
+        buildFilterOptions(colIdx, uniqueVals, optionsList);
+      }
+
+      applyAllFilters();
+    }
+
+    function selectOption(colIdx, val) {
+      if (!columnFilters[colIdx]) columnFilters[colIdx] = { textSearch: '', selectedOption: '' };
+      columnFilters[colIdx].selectedOption = val;
+
+      renderHRMSTable(globalTableRows, globalHeaders);
+    }
+
+    function clearAllFilters() {
+      columnFilters = {};
+      document.getElementById('searchInput').value = '';
+      renderHRMSTable(globalTableRows, globalHeaders);
+    }
+
+    function applyAllFilters() {
+      const globalQuery = document.getElementById('searchInput').value.toLowerCase().trim();
+      const rows = document.querySelectorAll('#tableBody tr');
+      let visibleCount = 0;
+
+      rows.forEach(row => {
+        let matchesGlobal = true;
+        let matchesColumnFilters = true;
+
+        if (globalQuery) {
+          matchesGlobal = row.textContent.toLowerCase().includes(globalQuery);
+        }
+
+        Object.keys(columnFilters).forEach(colIdx => {
+          const targetCell = row.children[colIdx];
+          const cellVal = targetCell ? targetCell.textContent.trim() : '';
+
+          const filterObj = columnFilters[colIdx];
+
+          if (filterObj.textSearch && !cellVal.toLowerCase().includes(filterObj.textSearch.toLowerCase())) {
+            matchesColumnFilters = false;
+          }
+
+          if (filterObj.selectedOption && cellVal !== filterObj.selectedOption) {
+            matchesColumnFilters = false;
+          }
+        });
+
+        if (matchesGlobal && matchesColumnFilters) {
+          row.style.display = '';
+          visibleCount++;
+        } else {
+          row.style.display = 'none';
+        }
+      });
+
+      document.getElementById('filteredCount').textContent = `Showing ${visibleCount} entries`;
+    }
+
+    function openAddModal(isEdit = false) {
+      editingIndex = isEdit ? editingIndex : -1;
+      const container = document.getElementById('dynamicFormInputs');
+      container.innerHTML = '';
+
+      document.getElementById('modalErrorMsg').classList.add('hidden');
+      document.getElementById('modalSubmitBtn').disabled = false;
+
+      document.getElementById('modalTitle').innerHTML = isEdit 
+        ? `<i class="fa-solid fa-pen-to-square text-blue-400 mr-2"></i> Edit Employee Record`
+        : `<i class="fa-solid fa-user-plus text-emerald-400 mr-2"></i> Onboard New Employee`;
+
+      document.getElementById('modalSubmitBtn').textContent = isEdit ? 'Update Employee' : 'Onboard Employee';
+
+      const existingData = isEdit ? globalTableRows[editingIndex] : [];
+
+      globalHeaders.forEach((h, idx) => {
+        const hLower = h.toLowerCase();
+        if (hLower === 'sn' || hLower.includes('serial')) return;
+
+        const div = document.createElement('div');
+        const val = existingData[idx] || '';
+
+        const isAadhaar = isAadhaarHeader(h);
+        const isMobile = hLower.includes('mobile') || hLower.includes('phone');
+
+        div.innerHTML = `
+          <label class="block text-xs font-bold text-slate-700 mb-1">${h} ${isAadhaar ? '<span class="text-rose-600 font-extrabold">* (Aadhaar Check)</span>' : ''}</label>
+          <input type="text" id="${isAadhaar ? 'aadhaarInput' : 'field_' + idx}" data-colindex="${idx}" value="${val}" ${isAadhaar ? 'required' : ''} 
+            placeholder="Enter ${h}" 
+            oninput="${isAadhaar ? 'validateAadhaarRealtime(this)' : ''}"
+            onkeyup="${isAadhaar ? 'validateAadhaarRealtime(this)' : ''}"
+            onpaste="${isAadhaar ? 'setTimeout(()=>validateAadhaarRealtime(this), 50)' : ''}"
+            class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-bold text-slate-900 ${isAadhaar || isMobile ? 'mono-number' : ''} focus:ring-2 focus:ring-blue-500 focus:outline-none transition-colors">
+        `;
+        container.appendChild(div);
+      });
+
+      document.getElementById('addModal').classList.remove('hidden');
+      document.getElementById('addModal').classList.add('flex');
+    }
+
+    function validateAadhaarRealtime(inputElement) {
+      const enteredDigits = cleanDigits(inputElement.value);
+      const errDiv = document.getElementById('modalErrorMsg');
+      const errText = document.getElementById('modalErrorText');
+      const submitBtn = document.getElementById('modalSubmitBtn');
+
+      if (!enteredDigits || enteredDigits.length < 5) {
+        errDiv.classList.add('hidden');
+        inputElement.classList.remove('border-rose-500', 'bg-rose-50', 'text-rose-900');
+        submitBtn.disabled = false;
+        return;
+      }
+
+      let aadhaarIdx = globalHeaders.findIndex(isAadhaarHeader);
+      let nameIdx = globalHeaders.findIndex(h => /name|candidate|employee/i.test(h));
+
+      if (aadhaarIdx === -1 && globalTableRows.length > 0) {
+        aadhaarIdx = globalHeaders.findIndex((_, col) => {
+          return globalTableRows.some(r => cleanDigits(r[col]).length === 12);
+        });
+      }
+
+      if (aadhaarIdx === -1) return;
+
+      let duplicateMatch = null;
+
+      const isDuplicate = globalTableRows.some((row, rIdx) => {
+        if (editingIndex >= 0 && rIdx === editingIndex) return false;
+        const existingDigits = cleanDigits(row[aadhaarIdx]);
+        if (existingDigits && existingDigits === enteredDigits) {
+          duplicateMatch = row;
+          return true;
+        }
+        return false;
+      });
+
+      if (isDuplicate) {
+        const existingName = (nameIdx !== -1 && duplicateMatch && duplicateMatch[nameIdx]) ? duplicateMatch[nameIdx] : 'Existing Employee';
+
+        inputElement.classList.add('border-rose-500', 'bg-rose-50', 'text-rose-900');
+        errText.innerHTML = `Entered Aadhaar Card is <strong>ALREADY REGISTERED</strong> to candidate: <span class="underline font-extrabold text-rose-900">${existingName}</span>. Onboarding is blocked!`;
+        errDiv.classList.remove('hidden');
+        submitBtn.disabled = true;
+      } else {
+        inputElement.classList.remove('border-rose-500', 'bg-rose-50', 'text-rose-900');
+        errDiv.classList.add('hidden');
+        submitBtn.disabled = false;
+      }
+    }
+
+    function closeAddModal() {
+      document.getElementById('addModal').classList.add('hidden');
+      document.getElementById('addModal').classList.remove('flex');
+      document.getElementById('addEmployeeForm').reset();
+      document.getElementById('modalErrorMsg').classList.add('hidden');
+      document.getElementById('modalSubmitBtn').disabled = false;
+      editingIndex = -1;
+    }
+
+    function handleFormSubmit(e) {
       e.preventDefault();
-      const val = aadharInput.value.trim();
 
-      if (!val) {
-        aadharError.textContent = "Aadhaar Number is required!";
-        aadharInput.classList.add("input-error");
+      const submitBtn = document.getElementById('modalSubmitBtn');
+      if (submitBtn.disabled) {
+        alert("Action Blocked! Duplicate Aadhaar Card detected.");
         return;
       }
 
-      if (val.length !== 12) {
-        aadharError.textContent = "Aadhaar Number must be exactly 12 digits!";
-        aadharInput.classList.add("input-error");
-        return;
+      const inputs = document.querySelectorAll('#dynamicFormInputs input');
+      let newRow = new Array(globalHeaders.length).fill('');
+
+      let aadhaarValueDigits = '';
+      let aadhaarIdx = globalHeaders.findIndex(isAadhaarHeader);
+
+      if (aadhaarIdx === -1 && globalTableRows.length > 0) {
+        aadhaarIdx = globalHeaders.findIndex((_, col) => {
+          return globalTableRows.some(r => cleanDigits(r[col]).length === 12);
+        });
       }
 
-      if (aadhaarTree.contains(val)) {
-        aadharError.textContent = "Error: Duplicate Aadhaar Number detected!";
-        aadharInput.classList.add("input-error");
-        return;
+      inputs.forEach(input => {
+        const idx = parseInt(input.getAttribute('data-colindex'));
+        const val = input.value.trim();
+        newRow[idx] = val;
+
+        if (idx === aadhaarIdx) {
+          aadhaarValueDigits = cleanDigits(val);
+        }
+      });
+
+      if (aadhaarIdx !== -1 && aadhaarValueDigits) {
+        let isDuplicate = globalTableRows.some((row, rIdx) => {
+          if (editingIndex >= 0 && rIdx === editingIndex) return false;
+          const existingDigits = cleanDigits(row[aadhaarIdx]);
+          return (existingDigits && existingDigits === aadhaarValueDigits);
+        });
+
+        if (isDuplicate) {
+          alert("CRITICAL ALERT: Duplicate Aadhaar Card detected! Onboarding Rejected.");
+          return;
+        }
       }
 
-      // Safe insertion into Tree
-      aadhaarTree.insert(val);
-      alert("Employee Onboarded Successfully!");
-      closeModal();
+      let key = aadhaarValueDigits || `row_${editingIndex >= 0 ? editingIndex : globalTableRows.length}`;
+
+      if (editingIndex >= 0) {
+        globalTableRows[editingIndex] = newRow;
+
+        let localOverrides = JSON.parse(localStorage.getItem(getStorageKey('edits')) || '{}');
+        localOverrides[key] = newRow;
+        localStorage.setItem(getStorageKey('edits'), JSON.stringify(localOverrides));
+
+        showAlert(`Employee record updated successfully!`, 'success');
+      } else {
+        globalTableRows.push(newRow);
+
+        let localAdded = JSON.parse(localStorage.getItem(getStorageKey('added')) || '[]');
+        localAdded.push(newRow);
+        localStorage.setItem(getStorageKey('added'), JSON.stringify(localAdded));
+
+        showAlert(`New employee onboarded successfully!`, 'success');
+      }
+
+      closeAddModal();
+      renderHRMSTable(globalTableRows, globalHeaders);
+    }
+
+    function editEmployee(index) {
+      editingIndex = index;
+      openAddModal(true);
+    }
+
+    function deleteEmployee(index) {
+      let aadhaarIdx = globalHeaders.findIndex(isAadhaarHeader);
+      if (aadhaarIdx === -1 && globalTableRows.length > 0) {
+        aadhaarIdx = globalHeaders.findIndex((_, col) => {
+          return globalTableRows.some(r => cleanDigits(r[col]).length === 12);
+        });
+      }
+
+      const targetRow = globalTableRows[index];
+      if (!targetRow) return;
+
+      if (confirm(`Are you sure you want to delete Employee #${index + 1}?`)) {
+        let uniqueKey = (aadhaarIdx !== -1 && targetRow[aadhaarIdx]) ? cleanDigits(targetRow[aadhaarIdx]) : JSON.stringify(targetRow);
+
+        // Check if this row was manually added in HRMS
+        let localAdded = JSON.parse(localStorage.getItem(getStorageKey('added')) || '[]');
+        let isManualAdd = localAdded.some(aRow => {
+          let aKey = (aadhaarIdx !== -1 && aRow[aadhaarIdx]) ? cleanDigits(aRow[aadhaarIdx]) : JSON.stringify(aRow);
+          return aKey === uniqueKey;
+        });
+
+        if (isManualAdd) {
+          // Permanently block manually added rows upon delete
+          let localDeletedManual = JSON.parse(localStorage.getItem(getStorageKey('deleted_manual')) || '[]');
+          if (!localDeletedManual.includes(uniqueKey)) {
+            localDeletedManual.push(uniqueKey);
+            localStorage.setItem(getStorageKey('deleted_manual'), JSON.stringify(localDeletedManual));
+          }
+        }
+
+        // Remove overrides if any
+        let localOverrides = JSON.parse(localStorage.getItem(getStorageKey('edits')) || '{}');
+        delete localOverrides[uniqueKey];
+        localStorage.setItem(getStorageKey('edits'), JSON.stringify(localOverrides));
+
+        globalTableRows.splice(index, 1);
+        renderHRMSTable(globalTableRows, globalHeaders);
+        showAlert(`Employee #${index + 1} removed from current view!`, 'success');
+      }
+    }
+
+    function showAlert(message, type = 'info') {
+      const banner = document.getElementById('alertBanner');
+      const msgSpan = document.getElementById('alertMessage');
+      
+      banner.className = `mb-4 p-4 rounded-xl border font-bold text-xs flex items-center justify-between ${
+        type === 'success' 
+          ? 'bg-emerald-50 text-emerald-800 border-emerald-300' 
+          : type === 'error' 
+          ? 'bg-rose-50 text-rose-800 border-rose-300' 
+          : 'bg-blue-50 text-blue-800 border-blue-300'
+      }`;
+      
+      msgSpan.textContent = message;
+      banner.classList.remove('hidden');
+
+      setTimeout(() => {
+        hideAlert();
+      }, 4000);
+    }
+
+    function hideAlert() {
+      document.getElementById('alertBanner').classList.add('hidden');
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadSheetData(false);
     });
-  });
-</script>
-
+  </script>
 </body>
 </html>
