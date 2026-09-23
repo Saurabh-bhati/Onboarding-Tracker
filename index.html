@@ -77,7 +77,7 @@
         <div class="flex items-center gap-3">
           <div class="relative w-72">
             <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
-            <input type="text" id="searchInput" oninput="applyAllFilters()" placeholder="Global Search (Name, Aadhaar, Phone...)" class="w-full pl-9 pr-4 py-2 bg-slate-100 border border-slate-300 rounded-lg text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <input type="text" id="searchInput" oninput="applyAllFilters()" placeholder="Global Search (Name, Phone...)" class="w-full pl-9 pr-4 py-2 bg-slate-100 border border-slate-300 rounded-lg text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500">
           </div>
 
           <button onclick="openAddModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-xs font-extrabold flex items-center gap-2 shadow-sm transition">
@@ -182,7 +182,7 @@
         <div id="modalErrorMsg" class="hidden p-3.5 bg-rose-50 border border-rose-300 text-rose-800 font-bold text-xs rounded-xl flex items-start gap-3">
           <i class="fa-solid fa-triangle-exclamation text-rose-600 text-lg mt-0.5 animate-bounce"></i>
           <div>
-            <p class="font-extrabold uppercase text-[11px] text-rose-900 tracking-wider">DUPLICATE AADHAAR DETECTED</p>
+            <p class="font-extrabold uppercase text-[11px] text-rose-900 tracking-wider">DUPLICATE RECORD DETECTED</p>
             <p id="modalErrorText" class="mt-0.5 font-semibold text-xs text-rose-700"></p>
           </div>
         </div>
@@ -617,7 +617,7 @@
         const isMobile = hLower.includes('mobile') || hLower.includes('phone');
 
         div.innerHTML = `
-          <label class="block text-xs font-bold text-slate-700 mb-1">${h} ${isAadhaar ? '<span class="text-rose-600 font-extrabold">* (Aadhaar Check)</span>' : ''}</label>
+          <label class="block text-xs font-bold text-slate-700 mb-1">${h} ${isAadhaar ? '<span class="text-rose-600 font-extrabold">* (Validation Check)</span>' : ''}</label>
           <input type="text" id="${isAadhaar ? 'aadhaarInput' : 'field_' + idx}" data-colindex="${idx}" value="${val}" ${isAadhaar ? 'required' : ''} 
             placeholder="Enter ${h}" 
             oninput="${isAadhaar ? 'validateAadhaarRealtime(this)' : ''}"
@@ -672,7 +672,7 @@
         const existingName = (nameIdx !== -1 && duplicateMatch && duplicateMatch[nameIdx]) ? duplicateMatch[nameIdx] : 'Existing Employee';
 
         inputElement.classList.add('border-rose-500', 'bg-rose-50', 'text-rose-900');
-        errText.innerHTML = `Entered Aadhaar Card is <strong>ALREADY REGISTERED</strong> to candidate: <span class="underline font-extrabold text-rose-900">${existingName}</span>. Onboarding is blocked!`;
+        errText.innerHTML = `Entered Record ID is <strong>ALREADY REGISTERED</strong> to candidate: <span class="underline font-extrabold text-rose-900">${existingName}</span>. Onboarding is blocked!`;
         errDiv.classList.remove('hidden');
         submitBtn.disabled = true;
       } else {
@@ -696,7 +696,7 @@
 
       const submitBtn = document.getElementById('modalSubmitBtn');
       if (submitBtn.disabled) {
-        alert("Action Blocked! Duplicate Aadhaar Card detected.");
+        alert("Action Blocked! Duplicate record detected.");
         return;
       }
 
@@ -730,7 +730,7 @@
         });
 
         if (isDuplicate) {
-          alert("CRITICAL ALERT: Duplicate Aadhaar Card detected! Onboarding Rejected.");
+          alert("CRITICAL ALERT: Duplicate Record detected! Onboarding Rejected.");
           return;
         }
       }
